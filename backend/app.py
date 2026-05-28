@@ -11,6 +11,13 @@ pm10_model = joblib.load("pm10_model.pkl")
 
 FEATURES = ["NO2", "SO2", "CO", "O3", "NH3"]
 
+@app.route("/")
+def home():
+    return {
+        "status": "running",
+        "service": "AirWatch ML Backend"
+    }
+
 @app.route("/predict-pm", methods=["POST"])
 def predict_pm():
     data = request.json or {}
