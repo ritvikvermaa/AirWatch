@@ -4,13 +4,6 @@ import joblib
 import pandas as pd
 
 app = Flask(__name__)
-CORS(app)
-
-pm25_model = joblib.load("pm25_model.pkl")
-pm10_model = joblib.load("pm10_model.pkl")
-
-FEATURES = ["NO2", "SO2", "CO", "O3", "NH3"]
-
 @app.route("/")
 def home():
     return {
@@ -18,6 +11,12 @@ def home():
         "service": "AirWatch Backend",
         "endpoint": "/predict-pm"
     }
+CORS(app)
+
+pm25_model = joblib.load("pm25_model.pkl")
+pm10_model = joblib.load("pm10_model.pkl")
+
+FEATURES = ["NO2", "SO2", "CO", "O3", "NH3"]
 
 @app.route("/predict-pm", methods=["POST"])
 def predict_pm():
