@@ -546,6 +546,20 @@ function useIsMobile(breakpoint = 768) {
   return mobile;
 }
 
+function getDistanceKm(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) ** 2;
+
+  return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+}
+
 // Reusable UI components
 function AQIGauge({ aqi, color, mobile = false }) {
   const cx = 100, cy = 85, r = 70, sw = 13;
@@ -658,7 +672,7 @@ function StatCard({ Icon, label, value, unit, color = ACC, sm }) {
 }
 
 // Application pages
-function Dashboard({ city, hist, wx, fc, wxLoading, mlLoading }) {
+function Dashboard({ city, hist, wx, fc, wxLoading, mlLoading, nearestDistance }) {
   const mobile = useIsMobile();
   const tablet = useIsMobile(1100);
   const aqi = getAQIValue(city); const cat = getCat(aqi); const hlth = getHealth(aqi);
@@ -678,6 +692,11 @@ function Dashboard({ city, hist, wx, fc, wxLoading, mlLoading }) {
         </div>
         {city.lastUpdate && (
           <span style={{ fontSize: 10, color: DIM }}>📅 {city.lastUpdate}</span>
+        )}
+        {nearestDistance !== null && nearestDistance !== undefined && (
+          <span style={{ fontSize: 10, color: DIM }}>
+            📍 Nearest station · {nearestDistance} km away
+          </span>
         )}
       </div>
 
@@ -1687,6 +1706,9 @@ export default function App() {
   const [wxLoading, setWxLoading] = useState(false);
   const [mlLoading, setMlLoading] = useState(false);
   const [mlFilledStations, setMlFilledStations] = useState({});
+  const [userLocation, setUserLocation] = useState(null);
+  const [nearestDistance, setNearestDistance] = useState(null);
+  const locationRequestedRef = useRef(false);
 
   const activeCities = cpcbCities;
 
@@ -1734,6 +1756,64 @@ export default function App() {
 
     return () => { cancelled = true; };
   }, []);
+
+  useEffect(() => {
+    if (!cpcbCities.length) return;
+    if (locationRequestedRef.current) return;
+    if (!navigator.geolocation) return;
+
+    locationRequestedRef.current = true;
+
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        const userLat = position.coords.latitude;
+        const userLon = position.coords.longitude;
+
+        setUserLocation({
+          lat: userLat,
+          lon: userLon,
+        });
+
+        let nearestStation = null;
+        let nearestKm = Infinity;
+
+        cpcbCities.forEach(station => {
+          const stationLat = Number(station.lat);
+          const stationLon = Number(station.lon);
+
+          if (!Number.isFinite(stationLat) || !Number.isFinite(stationLon)) return;
+
+          const distance = getDistanceKm(
+            userLat,
+            userLon,
+            stationLat,
+            stationLon
+          );
+
+          if (distance < nearestKm) {
+            nearestKm = distance;
+            nearestStation = station;
+          }
+        });
+
+        if (nearestStation) {
+          setCity(nearestStation);
+          setPg("dashboard");
+          setNearestDistance(Math.round(nearestKm * 10) / 10);
+        }
+      },
+      error => {
+        console.log("Location access not granted:", error.message);
+        setUserLocation(null);
+        setNearestDistance(null);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000,
+      }
+    );
+  }, [cpcbCities]);
 
   useEffect(() => {
     if (!activeCity) return;
@@ -1879,7 +1959,7 @@ export default function App() {
             <h1 style={{ margin: 0, fontSize: 22, fontWeight: 900, color: TXT, fontFamily: "Outfit,sans-serif" }}>{META[pg].title}</h1>
             <p style={{ margin: "4px 0 0", fontSize: 12, color: MUT }}>{META[pg].sub}</p>
           </div>
-          {pg === "dashboard" && <Dashboard city={activeCity} hist={hist} fc={fc} wx={wx || genWeatherFallback(activeCity.lat)} wxLoading={wxLoading} mlLoading={mlLoading} />}
+          {pg === "dashboard" && <Dashboard city={activeCity} hist={hist} fc={fc} wx={wx || genWeatherFallback(activeCity.lat)} wxLoading={wxLoading} mlLoading={mlLoading} nearestDistance={nearestDistance} />}
           {pg === "analytics" && <Analytics city={activeCity} hist={hist} />}
           {pg === "map" && <MapView cities={activeCities} sel={activeCity} onSel={setCity} />}
           {pg === "health" && <Health city={activeCity} fc={fc} />}
