@@ -180,7 +180,7 @@ function calibrateAQI(aqi) {
 
 async function predictMissingPM(p) {
   try {
-    const res = await fetch("http://127.0.0.1:5000/predict-pm", {
+    const res = await fetch(`${import.meta.env.VITE_ML_API_URL}/predict-pm`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
