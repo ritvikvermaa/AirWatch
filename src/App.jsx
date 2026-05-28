@@ -1567,9 +1567,9 @@ export default function App() {
   }, [activeCity?.id]);
 
   useEffect(() => {
-    if (!selectedCity) return;
+    if (!selected) return;
 
-    const p = selectedCity.p || {};
+    const p = selected.p || {};
 
     const needsML =
       (!p.PM25 || !p.PM10) &&
@@ -1577,7 +1577,7 @@ export default function App() {
 
     if (!needsML) return;
 
-    if (mlFilledStations[selectedCity.id]) return;
+    if (mlFilledStations[selected.id]) return;
 
     async function fillSelectedStationPM() {
       try {
@@ -1594,7 +1594,7 @@ export default function App() {
         const updatedAQI = calcAQI(updatedP);
 
         const updatedStation = {
-          ...selectedCity,
+          ...selected,
           p: updatedP,
           pollutants: updatedP,
           estimatedAQI: updatedAQI,
@@ -1607,15 +1607,15 @@ export default function App() {
 
         setCities(prev =>
           prev.map(c =>
-            c.id === selectedCity.id ? updatedStation : c
+            c.id === selected.id ? updatedStation : c
           )
         );
 
-        setSelectedCity(updatedStation);
+        setselected(updatedStation);
 
         setMlFilledStations(prev => ({
           ...prev,
-          [selectedCity.id]: true,
+          [selected.id]: true,
         }));
       } catch (err) {
         console.error("Selected station ML fill failed:", err);
@@ -1625,7 +1625,7 @@ export default function App() {
     }
 
     fillSelectedStationPM();
-  }, [selectedCity?.id]);
+  }, [selected?.id]);
 
   useEffect(() => {
     const lk = document.createElement("link");
