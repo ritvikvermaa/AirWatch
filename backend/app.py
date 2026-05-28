@@ -15,7 +15,8 @@ FEATURES = ["NO2", "SO2", "CO", "O3", "NH3"]
 def home():
     return {
         "status": "running",
-        "service": "AirWatch ML Backend"
+        "service": "AirWatch Backend",
+        "endpoint": "/predict-pm"
     }
 
 @app.route("/predict-pm", methods=["POST"])
