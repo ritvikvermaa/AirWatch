@@ -5,6 +5,8 @@ import {
 } from "recharts";
 import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 import {
   Wind, Droplets, Thermometer, Eye, MapPin, Bell, Home,
   BarChart2, Map as MapIcon, AlertTriangle, Heart,
@@ -705,9 +707,7 @@ function Dashboard({ city, hist, wx, fc, wxLoading, mlLoading }) {
           <div style={{ background: CARD, border: `1px solid ${BORD}`, borderRadius: 16, padding: "17px 15px" }}>
             <div style={{ fontSize: 10, color: MUT, fontWeight: 700, letterSpacing: "0.13em", marginBottom: 13 }}>WEATHER · {city.name.toUpperCase()}</div>
             {wxLoading ? (
-              <div style={{ color: MUT, fontSize: 12, padding: "20px 0", textAlign: "center" }}>
-                🌤️ Fetching live weather…
-              </div>
+              <WeatherSkeleton />
             ) : (
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9 }}>
                 <StatCard Icon={Thermometer} label="Temp" value={wx.temp} unit="°C" color="#fb923c" sm />
@@ -920,6 +920,9 @@ function MapView({ cities, sel, onSel }) {
           INDIA STATION MAP · {cities.length} CPCB STATIONS · INTERACTIVE LOCATIONS
         </div>
 
+        {cities.length === 0 ? (
+          <MapContentSkeleton />
+        ) : (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 260px", gap: 18, alignItems: "start" }}>
           <div style={{ height: 560, borderRadius: 18, overflow: "hidden", border: "1px solid #dbe7f3" }}>
             <MapContainer
@@ -1008,6 +1011,7 @@ function MapView({ cities, sel, onSel }) {
             })}
           </div>
         </div>
+        )}
       </div>
 
       <div style={{ background: CARD, border: `1px solid ${BORD}`, borderRadius: 14, padding: "13px 20px", display: "flex", alignItems: "center", gap: 22, flexWrap: "wrap" }}>
@@ -1488,6 +1492,156 @@ function TopBar({ city, setCity, cities, meta }) {
   );
 }
 
+
+function AppLoadingSkeleton() {
+  const cardStyle = {
+    background: CARD,
+    border: `1px solid ${BORD}`,
+    borderRadius: 20,
+    padding: "20px",
+  };
+
+  return (
+    <SkeletonTheme baseColor="#dbe7f3" highlightColor="#edf6ff">
+      <div style={{
+        display: "flex",
+        height: "100vh",
+        background: "linear-gradient(135deg, #f8fbff 0%, #eef6ff 45%, #f4f8fb 100%)",
+        fontFamily: "Outfit,sans-serif",
+        overflow: "hidden",
+      }}>
+        <div style={{
+          width: 238,
+          padding: 20,
+          background: CARD,
+          borderRight: `1px solid ${BORD}`,
+          display: "flex",
+          flexDirection: "column",
+          gap: 18,
+        }}>
+          <Skeleton height={34} width={130} borderRadius={10} />
+          <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 16 }}>
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Skeleton key={i} height={42} borderRadius={12} />
+            ))}
+          </div>
+          <div style={{ marginTop: "auto" }}>
+            <Skeleton height={42} borderRadius={12} />
+          </div>
+        </div>
+
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+          <div style={{
+            height: 72,
+            background: CARD,
+            borderBottom: `1px solid ${BORD}`,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "0 24px",
+          }}>
+            <div>
+              <Skeleton height={14} width={150} />
+              <div style={{ marginTop: 8 }}>
+                <Skeleton height={22} width={280} />
+              </div>
+            </div>
+            <Skeleton height={40} width={240} borderRadius={12} />
+          </div>
+
+          <div style={{ flex: 1, overflow: "hidden", padding: "20px 24px" }}>
+            <Skeleton height={26} width={180} />
+            <div style={{ marginTop: 8 }}>
+              <Skeleton height={14} width={360} />
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "280px 1fr 260px", gap: 16, marginTop: 20 }}>
+              <div style={cardStyle}>
+                <Skeleton height={12} width={150} />
+                <div style={{ display: "flex", justifyContent: "center", marginTop: 22 }}>
+                  <Skeleton circle width={180} height={180} />
+                </div>
+                <div style={{ marginTop: 18 }}>
+                  <Skeleton height={30} width={120} borderRadius={20} />
+                </div>
+              </div>
+
+              <div style={cardStyle}>
+                <Skeleton height={12} width={180} />
+                <div style={{ display: "flex", flexDirection: "column", gap: 16, marginTop: 22 }}>
+                  {Array.from({ length: 7 }).map((_, i) => (
+                    <div key={i}>
+                      <Skeleton height={12} width="35%" />
+                      <div style={{ marginTop: 8 }}>
+                        <Skeleton height={8} borderRadius={6} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                <div style={cardStyle}>
+                  <Skeleton height={12} width={120} />
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 16 }}>
+                    {Array.from({ length: 4 }).map((_, i) => (
+                      <Skeleton key={i} height={64} borderRadius={12} />
+                    ))}
+                  </div>
+                </div>
+                <div style={cardStyle}>
+                  <Skeleton height={16} width="70%" />
+                  <div style={{ marginTop: 10 }}>
+                    <Skeleton height={12} width="90%" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ ...cardStyle, marginTop: 18 }}>
+              <Skeleton height={12} width={180} />
+              <div style={{ display: "flex", gap: 10, marginTop: 18 }}>
+                {Array.from({ length: 7 }).map((_, i) => (
+                  <Skeleton key={i} height={128} width={116} borderRadius={14} />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </SkeletonTheme>
+  );
+}
+
+function WeatherSkeleton() {
+  return (
+    <SkeletonTheme baseColor="#dbe7f3" highlightColor="#edf6ff">
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9 }}>
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} height={64} borderRadius={12} />
+        ))}
+      </div>
+    </SkeletonTheme>
+  );
+}
+
+function MapContentSkeleton() {
+  return (
+    <SkeletonTheme baseColor="#dbe7f3" highlightColor="#edf6ff">
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 260px", gap: 18, alignItems: "start" }}>
+        <Skeleton height={560} borderRadius={18} />
+        <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+          <Skeleton height={14} width={130} />
+          {Array.from({ length: 10 }).map((_, i) => (
+            <Skeleton key={i} height={48} borderRadius={10} />
+          ))}
+        </div>
+      </div>
+    </SkeletonTheme>
+  );
+}
+
+
 // ══════════════════════════════════════════════════════════
 //  ROOT APP
 // ══════════════════════════════════════════════════════════
@@ -1644,17 +1798,7 @@ export default function App() {
   }, []);
 
   if (cpcbLoading) {
-    return (
-      <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #f8fbff 0%, #eef6ff 100%)", color: TXT, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Outfit,sans-serif" }}>
-        <div style={{ background: CARD, border: `1px solid ${BORD}`, borderRadius: 20, padding: "28px 32px", maxWidth: 520, textAlign: "center" }}>
-          <div style={{ fontSize: 28, marginBottom: 10 }}>🌫️</div>
-          <h2 style={{ margin: 0, fontSize: 20 }}>Loading CPCB live station data…</h2>
-          <p style={{ color: MUT, fontSize: 13, lineHeight: 1.6, marginTop: 8 }}>
-            Fetching live CPCB station data from data.gov.in and preparing station-level AQI estimates.
-          </p>
-        </div>
-      </div>
-    );
+    return <AppLoadingSkeleton />;
   }
 
   if (cpcbError || !activeCity || activeCities.length === 0) {
