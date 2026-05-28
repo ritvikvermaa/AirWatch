@@ -531,8 +531,23 @@ const DIM = "#94a3b8";
 const TXT = "#0f172a";
 const ACC = "#0ea5e9";
 
+function useIsMobile(breakpoint = 768) {
+  const getMobile = () =>
+    typeof window !== "undefined" ? window.innerWidth < breakpoint : false;
+
+  const [mobile, setMobile] = useState(getMobile);
+
+  useEffect(() => {
+    const onResize = () => setMobile(getMobile());
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [breakpoint]);
+
+  return mobile;
+}
+
 // Reusable UI components
-function AQIGauge({ aqi, color }) {
+function AQIGauge({ aqi, color, mobile = false }) {
   const cx = 100, cy = 85, r = 70, sw = 13;
   const toRad = a => a * Math.PI / 180;
   const pt = a => [cx + r * Math.cos(toRad(a)), cy + r * Math.sin(toRad(a))];
@@ -543,7 +558,7 @@ function AQIGauge({ aqi, color }) {
   const bg = `M${sx.toFixed(2)},${sy.toFixed(2)} A${r},${r} 0 1 1 ${ex.toFixed(2)},${ey.toFixed(2)}`;
   const vp = `M${sx.toFixed(2)},${sy.toFixed(2)} A${r},${r} 0 ${lg} 1 ${vx.toFixed(2)},${vy.toFixed(2)}`;
   return (
-    <svg viewBox="0 0 200 158" style={{ width: 210, height: 166, display: "block", margin: "0 auto" }}>
+    <svg viewBox="0 0 200 158" style={{ width: mobile ? 178 : 210, height: mobile ? 142 : 166, display: "block", margin: "0 auto" }}>
       <defs>
         <linearGradient id="gg" x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%" stopColor="#22c55e" />
@@ -644,6 +659,8 @@ function StatCard({ Icon, label, value, unit, color = ACC, sm }) {
 
 // Application pages
 function Dashboard({ city, hist, wx, fc, wxLoading, mlLoading }) {
+  const mobile = useIsMobile();
+  const tablet = useIsMobile(1100);
   const aqi = getAQIValue(city); const cat = getCat(aqi); const hlth = getHealth(aqi);
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
@@ -665,15 +682,15 @@ function Dashboard({ city, hist, wx, fc, wxLoading, mlLoading }) {
       </div>
 
       {/* Row 1 */}
-      <div style={{ display: "grid", gridTemplateColumns: "auto 1fr auto", gap: 16 }}>
+      <div style={{ display: "grid", gridTemplateColumns: tablet ? "1fr" : "auto 1fr auto", gap: tablet ? 14 : 16 }}>
 
         {/* AQI Gauge */}
         <div style={{
           background: CARD, border: `1px solid ${cat.color}2a`, borderRadius: 20, padding: "22px 20px",
-          display: "flex", flexDirection: "column", alignItems: "center", minWidth: 256, boxShadow: `0 0 50px ${cat.color}09`
+          display: "flex", flexDirection: "column", alignItems: "center", minWidth: mobile ? 0 : 256, width: "100%", boxShadow: `0 0 50px ${cat.color}09`
         }}>
           <div style={{ fontSize: 10, color: MUT, fontWeight: 700, letterSpacing: "0.13em", marginBottom: 8 }}>ESTIMATED AQI · CPCB STATION</div>
-          <AQIGauge aqi={aqi} color={cat.color} />
+          <AQIGauge aqi={aqi} color={cat.color} mobile={mobile} />
           <div style={{ padding: "5px 18px", borderRadius: 20, background: `${cat.color}18`, border: `1px solid ${cat.color}30`, marginTop: 8 }}>
             <span style={{ color: cat.color, fontSize: 14, fontWeight: 800 }}>{cat.label}</span>
           </div>
@@ -703,13 +720,13 @@ function Dashboard({ city, hist, wx, fc, wxLoading, mlLoading }) {
         </div>
 
         {/* Weather + Status */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 11, minWidth: 242 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 11, minWidth: 0, width: "100%" }}>
           <div style={{ background: CARD, border: `1px solid ${BORD}`, borderRadius: 16, padding: "17px 15px" }}>
             <div style={{ fontSize: 10, color: MUT, fontWeight: 700, letterSpacing: "0.13em", marginBottom: 13 }}>WEATHER · {city.name.toUpperCase()}</div>
             {wxLoading ? (
               <WeatherSkeleton />
             ) : (
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9 }}>
+              <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "repeat(2,minmax(0,1fr))", gap: 9 }}>
                 <StatCard Icon={Thermometer} label="Temp" value={wx.temp} unit="°C" color="#fb923c" sm />
                 <StatCard Icon={Droplets} label="Humidity" value={wx.humidity} unit="%" color={ACC} sm />
                 <StatCard Icon={Wind} label="Wind" value={wx.windSpeed} unit="km/h" color="#34d399" sm />
@@ -757,7 +774,7 @@ function Dashboard({ city, hist, wx, fc, wxLoading, mlLoading }) {
             ))}
           </div>
         </div>
-        <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 4 }}>
+        <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 8, WebkitOverflowScrolling: "touch" }}>
           {fc.map((d, i) => <ForecastCard key={i} d={d} />)}
         </div>
       </div>
@@ -785,7 +802,7 @@ function Dashboard({ city, hist, wx, fc, wxLoading, mlLoading }) {
       {/* Health */}
       <div style={{ background: CARD, border: `1px solid ${BORD}`, borderRadius: 20, padding: "22px 20px" }}>
         <div style={{ fontSize: 10, color: MUT, fontWeight: 700, letterSpacing: "0.13em", marginBottom: 16 }}>HEALTH RECOMMENDATIONS</div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 13 }}>
+        <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "repeat(3,1fr)", gap: 13 }}>
           {[
             { Icon: Shield, title: "General", text: hlth.gen, color: ACC },
             { Icon: Heart, title: "Sensitive", text: hlth.sens, color: "#f472b6" },
@@ -806,12 +823,13 @@ function Dashboard({ city, hist, wx, fc, wxLoading, mlLoading }) {
 }
 
 function Analytics({ city, hist }) {
+  const mobile = useIsMobile();
   const aqi = getAQIValue(city); const cat = getCat(aqi);
   const last7 = hist.slice(-7);
   const pData = Object.entries(PMETA).map(([k, m]) => ({ name: m.label, value: city.p[k] || 0, color: m.color }));
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 13 }}>
+      <div style={{ display: "grid", gridTemplateColumns: mobile ? "repeat(2,1fr)" : "repeat(4,1fr)", gap: 13 }}>
         {[
           { label: "7-Day Avg", val: Math.round(last7.reduce((s, d) => s + d.aqi, 0) / 7), color: cat.color },
           { label: "30-Day Avg", val: Math.round(hist.reduce((s, d) => s + d.aqi, 0) / hist.length), color: ACC },
@@ -843,7 +861,7 @@ function Analytics({ city, hist }) {
           </AreaChart>
         </ResponsiveContainer>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1.4fr 0.6fr", gap: 16 }}>
+      <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "1.4fr 0.6fr", gap: 16 }}>
         <div style={{ background: CARD, border: `1px solid ${BORD}`, borderRadius: 20, padding: "22px 20px" }}>
           <div style={{ fontSize: 10, color: MUT, fontWeight: 700, letterSpacing: "0.13em", marginBottom: 16 }}>PM2.5 & PM10 — 30 DAYS</div>
           <ResponsiveContainer width="100%" height={200}>
@@ -913,9 +931,10 @@ function MapFlyToSelected({ city }) {
 }
 
 function MapView({ cities, sel, onSel }) {
+  const mobile = useIsMobile();
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-      <div style={{ background: CARD, border: `1px solid ${BORD}`, borderRadius: 20, padding: "22px 20px" }}>
+      <div style={{ background: CARD, border: `1px solid ${BORD}`, borderRadius: 20, padding: mobile ? "16px 14px" : "22px 20px" }}>
         <div style={{ fontSize: 10, color: MUT, fontWeight: 700, letterSpacing: "0.13em", marginBottom: 14 }}>
           INDIA STATION MAP · {cities.length} CPCB STATIONS · INTERACTIVE LOCATIONS
         </div>
@@ -923,8 +942,8 @@ function MapView({ cities, sel, onSel }) {
         {cities.length === 0 ? (
           <MapContentSkeleton />
         ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 260px", gap: 18, alignItems: "start" }}>
-          <div style={{ height: 560, borderRadius: 18, overflow: "hidden", border: "1px solid #dbe7f3" }}>
+        <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "1fr 260px", gap: mobile ? 12 : 18, alignItems: "start" }}>
+          <div style={{ height: mobile ? 380 : 560, borderRadius: 18, overflow: "hidden", border: "1px solid #dbe7f3" }}>
             <MapContainer
               center={INDIA_CENTER}
               zoom={5}
@@ -979,7 +998,7 @@ function MapView({ cities, sel, onSel }) {
             </MapContainer>
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 7, maxHeight: 560, overflowY: "auto" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 7, maxHeight: mobile ? 280 : 560, overflowY: "auto" }}>
             <div style={{ fontSize: 9, color: DIM, fontWeight: 700, letterSpacing: "0.1em", marginBottom: 4, padding: "0 4px" }}>
               STATIONS BY AQI ↓
             </div>
@@ -1102,6 +1121,8 @@ function SettingSelect({ label, value, onChange, options }) {
 }
 
 function SettingsPage({ meta, city, cities }) {
+  const mobile = useIsMobile();
+  const tablet = useIsMobile(1100);
   const [compactMode, setCompactMode] = useState(false);
   const [animations, setAnimations] = useState(true);
   const [showStationNames, setShowStationNames] = useState(true);
@@ -1124,7 +1145,7 @@ function SettingsPage({ meta, city, cities }) {
     <div style={{ background: CARD, border: `1px solid ${BORD}`, borderRadius: 20, padding: "22px 20px" }}>
       <div style={{ fontSize: 10, color: MUT, fontWeight: 800, letterSpacing: "0.13em", marginBottom: 4 }}>{title}</div>
       {sub && <div style={{ fontSize: 11, color: DIM, marginBottom: 16 }}>{sub}</div>}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(2,minmax(0,1fr))", gap: 12 }}>{children}</div>
+      <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "repeat(2,minmax(0,1fr))", gap: 12 }}>{children}</div>
     </div>
   );
 
@@ -1165,7 +1186,7 @@ function SettingsPage({ meta, city, cities }) {
         <SettingToggle label="Auto Refresh Data" desc="Automatically reload CPCB station data at the selected interval." value={autoRefresh} onChange={setAutoRefresh} />
         <SettingToggle label="Refresh Weather Automatically" desc="Update weather when selected station changes." value={refreshWeather} onChange={setRefreshWeather} />
         <SettingToggle label="Show Last Updated Time" desc="Show CPCB/data.gov.in update timestamp in the top bar." value={showLastUpdated} onChange={setShowLastUpdated} />
-        <div style={{ background: BG, border: "1px solid #dbe7f3", borderRadius: 14, padding: "14px 16px", display: "flex", gap: 10, alignItems: "center" }}>
+        <div style={{ background: BG, border: "1px solid #dbe7f3", borderRadius: 14, padding: "14px 16px", display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
           <button onClick={() => window.location.reload()} style={{ background: ACC, color: BG, border: "none", borderRadius: 10, padding: "9px 14px", fontWeight: 900, cursor: "pointer" }}>Refresh Now</button>
           <button onClick={() => localStorage.clear()} style={{ background: "transparent", color: "#94a3b8", border: "1px solid #94a3b8", borderRadius: 10, padding: "9px 14px", fontWeight: 800, cursor: "pointer" }}>Clear Cache</button>
         </div>
@@ -1173,7 +1194,7 @@ function SettingsPage({ meta, city, cities }) {
 
       <div style={{ background: CARD, border: `1px solid ${BORD}`, borderRadius: 20, padding: "22px 20px" }}>
         <div style={{ fontSize: 10, color: MUT, fontWeight: 800, letterSpacing: "0.13em", marginBottom: 16 }}>ABOUT AIRWATCH</div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12 }}>
+        <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : tablet ? "repeat(2,minmax(0,1fr))" : "repeat(4,1fr)", gap: mobile ? 10 : 12 }}>
           {[
             ["Stations Loaded", loadedStations],
             ["Current Station", city?.station || city?.name],
@@ -1182,7 +1203,7 @@ function SettingsPage({ meta, city, cities }) {
           ].map(([label, value]) => (
             <div key={label} style={{ background: BG, border: "1px solid #dbe7f3", borderRadius: 14, padding: "14px 16px" }}>
               <div style={{ color: MUT, fontSize: 10, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase" }}>{label}</div>
-              <div style={{ color: TXT, fontSize: 14, fontWeight: 800, marginTop: 6, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{value}</div>
+              <div style={{ color: TXT, fontSize: mobile ? 13 : 14, fontWeight: 800, marginTop: 6, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: mobile ? "normal" : "nowrap", wordBreak: "break-word", lineHeight: 1.35 }}>{value}</div>
             </div>
           ))}
         </div>
@@ -1192,6 +1213,7 @@ function SettingsPage({ meta, city, cities }) {
 }
 
 function Health({ city, fc }) {
+  const mobile = useIsMobile();
   const aqi = getAQIValue(city); const cat = getCat(aqi); const hlth = getHealth(aqi);
   const rc = r => r === "High" ? "#ef4444" : r === "Medium" ? "#f59e0b" : "#22c55e";
   const groups = [
@@ -1206,7 +1228,7 @@ function Health({ city, fc }) {
     <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
       <div style={{
         background: CARD, border: `1px solid ${cat.color}28`, borderRadius: 20, padding: "26px 24px",
-        display: "flex", gap: 20, alignItems: "flex-start", boxShadow: `0 0 44px ${cat.color}08`
+        display: "flex", flexDirection: mobile ? "column" : "row", gap: 20, alignItems: mobile ? "stretch" : "flex-start", boxShadow: `0 0 44px ${cat.color}08`
       }}>
         <div style={{ fontSize: 50 }}>{hlth.icon}</div>
         <div style={{ flex: 1 }}>
@@ -1224,14 +1246,14 @@ function Health({ city, fc }) {
             ))}
           </div>
         </div>
-        <div style={{ textAlign: "right" }}>
+        <div style={{ textAlign: mobile ? "left" : "right" }}>
           <div style={{ fontSize: 50, fontWeight: 900, color: cat.color, fontFamily: "monospace", lineHeight: 1 }}>{aqi}</div>
           <div style={{ fontSize: 12, color: cat.color, fontWeight: 700, marginTop: 3 }}>{cat.label}</div>
         </div>
       </div>
       <div style={{ background: CARD, border: `1px solid ${BORD}`, borderRadius: 20, padding: "22px 20px" }}>
         <div style={{ fontSize: 10, color: MUT, fontWeight: 700, letterSpacing: "0.13em", marginBottom: 16 }}>RISK BY POPULATION GROUP</div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12 }}>
+        <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "repeat(3,1fr)", gap: 12 }}>
           {groups.map((g, i) => (
             <div key={i} style={{ background: BG, border: "1px solid #dbe7f3", borderRadius: 14, padding: "15px 15px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 9 }}>
@@ -1248,11 +1270,11 @@ function Health({ city, fc }) {
       </div>
       <div style={{ background: CARD, border: `1px solid ${BORD}`, borderRadius: 20, padding: "22px 20px" }}>
         <div style={{ fontSize: 10, color: MUT, fontWeight: 700, letterSpacing: "0.13em", marginBottom: 16 }}>7-DAY HEALTH OUTLOOK</div>
-        <div style={{ display: "flex", gap: 9 }}>
+        <div style={{ display: "flex", gap: 9, overflowX: mobile ? "auto" : "visible", WebkitOverflowScrolling: "touch", paddingBottom: mobile ? 8 : 0 }}>
           {fc.map((d, i) => {
             const h = getHealth(d.aqi);
             return (
-              <div key={i} style={{ flex: 1, textAlign: "center", padding: "14px 8px", background: BG, borderRadius: 12, border: `1px solid ${d.cat.color}1a` }}>
+              <div key={i} style={{ flex: mobile ? "0 0 112px" : 1, textAlign: "center", padding: "14px 8px", background: BG, borderRadius: 12, border: `1px solid ${d.cat.color}1a` }}>
                 <div style={{ fontSize: 10, color: MUT, fontWeight: 700, marginBottom: 5 }}>{d.day}</div>
                 <div style={{ fontSize: 20 }}>{h.icon}</div>
                 <div style={{ fontSize: 17, fontWeight: 900, color: d.cat.color, fontFamily: "monospace", marginTop: 4, lineHeight: 1 }}>{d.aqi}</div>
@@ -1277,14 +1299,15 @@ const NAV = [
 ];
 
 function Sidebar({ pg, set }) {
+  const mobile = useIsMobile();
   return (
     <div style={{
-      width: 62, background: BG, borderRight: "1px solid #dbe7f3", display: "flex",
-      flexDirection: "column", alignItems: "center", padding: "18px 0", gap: 6,
-      flexShrink: 0, height: "100vh", position: "sticky", top: 0
+      width: mobile ? "100%" : 62, background: BG, borderRight: mobile ? "none" : "1px solid #dbe7f3", borderTop: mobile ? "1px solid #dbe7f3" : "none", display: "flex",
+      flexDirection: mobile ? "row" : "column", alignItems: "center", justifyContent: mobile ? "space-around" : "flex-start", padding: mobile ? "8px 10px" : "18px 0", gap: 6,
+      flexShrink: 0, height: mobile ? 64 : "100vh", position: mobile ? "fixed" : "sticky", top: mobile ? "auto" : 0, bottom: mobile ? 0 : "auto", left: mobile ? 0 : "auto", right: mobile ? 0 : "auto", zIndex: 9999
     }}>
       {/* AirWatch logo mark */}
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 12, gap: 2 }}>
+      <div style={{ display: mobile ? "none" : "flex", flexDirection: "column", alignItems: "center", marginBottom: 12, gap: 2 }}>
         <div style={{
           width: 38, height: 38, borderRadius: 11, background: "linear-gradient(135deg,#0ea5e9,#6366f1)",
           display: "flex", alignItems: "center", justifyContent: "center"
@@ -1293,7 +1316,7 @@ function Sidebar({ pg, set }) {
         </div>
         <div style={{ fontSize: 6, color: DIM, fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase" }}>AirWatch</div>
       </div>
-      <div style={{ width: 28, height: 1, background: "#dbe7f3", marginBottom: 5 }} />
+      <div style={{ display: mobile ? "none" : "block", width: 28, height: 1, background: "#dbe7f3", marginBottom: 5 }} />
       {NAV.map(({ id, Icon, label }) => {
         const on = pg === id;
         return (
@@ -1309,7 +1332,7 @@ function Sidebar({ pg, set }) {
           </div>
         );
       })}
-      <div style={{ flex: 1 }} />
+      <div style={{ flex: mobile ? 0 : 1 }} />
       <div
         onClick={() => set("settings")}
         title="Settings"
@@ -1327,6 +1350,7 @@ function Sidebar({ pg, set }) {
 }
 
 function TopBar({ city, setCity, cities, meta }) {
+  const mobile = useIsMobile();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const wrapRef = useRef(null);
@@ -1354,29 +1378,29 @@ function TopBar({ city, setCity, cities, meta }) {
     // No zIndex on the bar itself — avoids creating a stacking context that
     // traps the dropdown below any fixed overlays
     <div style={{
-      height: 60, background: BG, borderBottom: "1px solid #dbe7f3", display: "flex",
-      alignItems: "center", padding: "0 22px", gap: 14, position: "sticky", top: 0,
+      minHeight: mobile ? 72 : 60, background: BG, borderBottom: "1px solid #dbe7f3", display: "flex",
+      alignItems: "center", flexWrap: "nowrap", padding: mobile ? "10px 12px" : "0 22px", gap: mobile ? 8 : 14, position: "sticky", top: 0,
       /* zIndex intentionally omitted */
     }}>
 
       {/* Brand text */}
       <span style={{
-        fontSize: 16, fontWeight: 900, color: TXT, letterSpacing: "-0.02em", flexShrink: 0,
+        fontSize: mobile ? 15 : 16, fontWeight: 900, color: TXT, letterSpacing: "-0.02em", flexShrink: 0,
         background: "linear-gradient(135deg,#38bdf8,#6366f1)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent"
       }}>
         AirWatch
       </span>
-      <div style={{ width: 1, height: 20, background: "#dbe7f3" }} />
+      <div style={{ display: mobile ? "none" : "block", width: 1, height: 20, background: "#dbe7f3" }} />
 
       {/* City selector — ref wraps trigger + dropdown together */}
-      <div ref={wrapRef} style={{ position: "relative" }}>
+      <div ref={wrapRef} style={{ position: "relative", flex: mobile ? 1 : "0 0 auto", minWidth: 0 }}>
         <div onClick={() => setOpen(v => !v)} style={{
-          display: "flex", alignItems: "center", gap: 8, padding: "6px 14px",
+          display: "flex", alignItems: "center", gap: 8, padding: mobile ? "7px 10px" : "6px 14px",
           borderRadius: 10, background: CARD, border: `1px solid ${open ? "#1e3a5f" : "#dbe7f3"}`, cursor: "pointer",
           transition: "border-color 0.15s"
         }}>
           <MapPin size={13} color={ACC} />
-          <span style={{ fontSize: 13, fontWeight: 700, color: TXT }}>{city.name}</span>
+          <span style={{ fontSize: mobile ? 12 : 13, fontWeight: 700, color: TXT, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: mobile ? 140 : 280 }}>{city.name}</span>
           <span style={{ fontSize: 11, color: MUT }}>{city.state}</span>
           <ChevronDown size={11} color={MUT}
             style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
@@ -1390,7 +1414,7 @@ function TopBar({ city, setCity, cities, meta }) {
             position: "absolute", top: "calc(100% + 6px)", left: 0,
             zIndex: 9999, background: CARD,
             border: "1px solid #1e3a5f55", borderRadius: 14, padding: 8,
-            minWidth: 268, boxShadow: "0 24px 56px #000000aa",
+            minWidth: mobile ? "calc(100vw - 24px)" : 268, boxShadow: "0 24px 56px #000000aa",
             // Ensure dropdown is always on top regardless of ancestor stacking contexts
             isolation: "isolate",
           }}>
@@ -1468,14 +1492,14 @@ function TopBar({ city, setCity, cities, meta }) {
       {/* AQI badge */}
       <div style={{
         padding: "4px 12px", borderRadius: 8, background: `${cat.color}14`,
-        border: `1px solid ${cat.color}28`, display: "flex", gap: 6, alignItems: "center"
+        border: `1px solid ${cat.color}28`, display: "flex", gap: 6, alignItems: "center", flexShrink:0
       }}>
         <div style={{ width: 6, height: 6, borderRadius: "50%", background: cat.color }} />
         <span style={{ fontSize: 12, fontWeight: 800, color: cat.color }}>{aqi}</span>
         <span style={{ fontSize: 11, color: "#64748b" }}>{cat.label}</span>
       </div>
 
-      <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 10 }}>
+      <div style={{ marginLeft: mobile ? 0 : "auto", display: mobile ? "none" : "flex", alignItems: "center", gap: 10 }}>
         <span style={{ fontSize: 10, color: DIM }}>
           CPCB/data.gov.in · {cities.length} cities{meta?.totalStations ? ` · ${meta.totalStations} stations` : ""}
           {meta?.lastUpdate ? ` · ${meta.lastUpdate}` : ""}
@@ -1494,6 +1518,7 @@ function TopBar({ city, setCity, cities, meta }) {
 
 
 function AppLoadingSkeleton() {
+  const mobile = useIsMobile();
   const cardStyle = {
     background: CARD,
     border: `1px solid ${BORD}`,
@@ -1505,27 +1530,30 @@ function AppLoadingSkeleton() {
     <SkeletonTheme baseColor="#dbe7f3" highlightColor="#edf6ff">
       <div style={{
         display: "flex",
+        flexDirection: mobile ? "column" : "row",
         height: "100vh",
         background: "linear-gradient(135deg, #f8fbff 0%, #eef6ff 45%, #f4f8fb 100%)",
         fontFamily: "Outfit,sans-serif",
         overflow: "hidden",
       }}>
         <div style={{
-          width: 238,
-          padding: 20,
+          width: mobile ? "100%" : 238,
+          height: mobile ? 72 : "auto",
+          padding: mobile ? "12px 16px" : 20,
           background: CARD,
-          borderRight: `1px solid ${BORD}`,
+          borderRight: mobile ? "none" : `1px solid ${BORD}`,
+          borderBottom: mobile ? `1px solid ${BORD}` : "none",
           display: "flex",
-          flexDirection: "column",
+          flexDirection: mobile ? "row" : "column",
           gap: 18,
         }}>
           <Skeleton height={34} width={130} borderRadius={10} />
-          <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 16 }}>
+          <div style={{ display: mobile ? "none" : "flex", flexDirection: "column", gap: 12, marginTop: 16 }}>
             {Array.from({ length: 5 }).map((_, i) => (
               <Skeleton key={i} height={42} borderRadius={12} />
             ))}
           </div>
-          <div style={{ marginTop: "auto" }}>
+          <div style={{ display: mobile ? "none" : "block", marginTop: "auto" }}>
             <Skeleton height={42} borderRadius={12} />
           </div>
         </div>
@@ -1549,13 +1577,13 @@ function AppLoadingSkeleton() {
             <Skeleton height={40} width={240} borderRadius={12} />
           </div>
 
-          <div style={{ flex: 1, overflow: "hidden", padding: "20px 24px" }}>
+          <div style={{ flex: 1, overflow: "hidden", padding: mobile ? "14px 12px 78px" : "20px 24px" }}>
             <Skeleton height={26} width={180} />
             <div style={{ marginTop: 8 }}>
               <Skeleton height={14} width={360} />
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "280px 1fr 260px", gap: 16, marginTop: 20 }}>
+            <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "280px 1fr 260px", gap: 16, marginTop: 20 }}>
               <div style={cardStyle}>
                 <Skeleton height={12} width={150} />
                 <div style={{ display: "flex", justifyContent: "center", marginTop: 22 }}>
@@ -1614,9 +1642,10 @@ function AppLoadingSkeleton() {
 }
 
 function WeatherSkeleton() {
+  const mobile = useIsMobile();
   return (
     <SkeletonTheme baseColor="#dbe7f3" highlightColor="#edf6ff">
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9 }}>
+      <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "repeat(2,minmax(0,1fr))", gap: 9 }}>
         {Array.from({ length: 4 }).map((_, i) => (
           <Skeleton key={i} height={64} borderRadius={12} />
         ))}
@@ -1626,10 +1655,11 @@ function WeatherSkeleton() {
 }
 
 function MapContentSkeleton() {
+  const mobile = useIsMobile();
   return (
     <SkeletonTheme baseColor="#dbe7f3" highlightColor="#edf6ff">
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 260px", gap: 18, alignItems: "start" }}>
-        <Skeleton height={560} borderRadius={18} />
+      <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "1fr 260px", gap: mobile ? 12 : 18, alignItems: "start" }}>
+        <Skeleton height={mobile ? 380 : 560} borderRadius={18} />
         <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
           <Skeleton height={14} width={130} />
           {Array.from({ length: 10 }).map((_, i) => (
@@ -1646,6 +1676,7 @@ function MapContentSkeleton() {
 //  ROOT APP
 // ══════════════════════════════════════════════════════════
 export default function App() {
+  const mobile = useIsMobile();
   const [pg, setPg] = useState("dashboard");
   const [city, setCity] = useState(null);
   const [cpcbCities, setCpcbCities] = useState([]);
@@ -1839,11 +1870,11 @@ export default function App() {
   };
 
   return (
-    <div style={{ display: "flex", height: "100vh", background: "linear-gradient(135deg, #f8fbff 0%, #eef6ff 45%, #f4f8fb 100%)", fontFamily: "Outfit,sans-serif", overflow: "hidden" }}>
+    <div style={{ display: "flex", flexDirection: mobile ? "column" : "row", height: "100vh", background: "linear-gradient(135deg, #f8fbff 0%, #eef6ff 45%, #f4f8fb 100%)", fontFamily: "Outfit,sans-serif", overflow: "hidden" }}>
       <Sidebar pg={pg} set={setPg} />
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
         <TopBar city={activeCity} setCity={setCity} cities={activeCities} meta={cpcbMeta} />
-        <div style={{ flex: 1, overflowY: "auto", padding: "20px 24px" }}>
+        <div style={{ flex: 1, overflowY: "auto", padding: mobile ? "16px 12px 84px" : "20px 24px" }}>
           <div style={{ marginBottom: 18 }}>
             <h1 style={{ margin: 0, fontSize: 22, fontWeight: 900, color: TXT, fontFamily: "Outfit,sans-serif" }}>{META[pg].title}</h1>
             <p style={{ margin: "4px 0 0", fontSize: 12, color: MUT }}>{META[pg].sub}</p>
