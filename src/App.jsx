@@ -279,38 +279,27 @@ async function csvToCities(rows) {
     }
   }
 
-  const stations = await Promise.all(
-    Object.values(stationMap).map(async st => {
-      const p = { ...st.p };
+  const stations = Object.values(seenStations).map(st => {
+    const p = { ...st.p };
 
-      // Fill only missing PM values using your Flask ML backend.
-      // No city mean/median aggregation is done anymore.
-      if (!p.PM25 || !p.PM10) {
-        const pred = await predictMissingPM(p);
+    const apiAQI = calcAQI(p);
 
-        if (!p.PM25) p.PM25 = Math.round(pred.PM25 || 0);
-        if (!p.PM10) p.PM10 = Math.round(pred.PM10 || 0);
-      }
+    return {
+      ...st,
+      p,
+      pollutants: p,
 
-      const estimatedAQI = calcAQI(p);
+      // Keep apiAQI null because data.gov.in pollutant_avg rows are not direct AQI rows.
+      // UI will use estimatedAQI through getAQIValue().
+      apiAQI: null,
+      estimatedAQI,
+      aqi: estimatedAQI,
+      category: getCat(estimatedAQI).label,
 
-      return {
-        ...st,
-        p,
-        pollutants: p,
-
-        // Keep apiAQI null because data.gov.in pollutant_avg rows are not direct AQI rows.
-        // UI will use estimatedAQI through getAQIValue().
-        apiAQI: null,
-        estimatedAQI,
-        aqi: estimatedAQI,
-        category: getCat(estimatedAQI).label,
-
-        stationCount: 1,
-        apiAQISource: "Individual CPCB station pollutant data + ML-filled missing PM + estimated AQI",
-      };
-    })
-  );
+      stationCount: 1,
+      apiAQISource: "Individual CPCB station pollutant data + ML-filled missing PM + estimated AQI",
+    };
+  });
 
   const cities = stations
     .filter(st => getAQIValue(st) > 0)
@@ -653,7 +642,7 @@ function StatCard({ Icon, label, value, unit, color = ACC, sm }) {
 }
 
 // Application pages
-function Dashboard({ city, hist, wx, fc, wxLoading }) {
+function Dashboard({ city, hist, wx, fc, wxLoading, mlLoading }) {
   const aqi = getAQIValue(city); const cat = getCat(aqi); const hlth = getHealth(aqi);
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
@@ -742,7 +731,11 @@ function Dashboard({ city, hist, wx, fc, wxLoading }) {
             <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#22c55e", boxShadow: "0 0 8px #22c55e", animation: "pulse 2s infinite", flexShrink: 0 }} />
             <div style={{ flex: 1 }}>
               <div style={{ color: "#22c55e", fontSize: 11, fontWeight: 800 }}>ML MODEL ACTIVE</div>
-              <div style={{ color: MUT, fontSize: 10, marginTop: 1 }}>Random Forest · weather + lag features</div>
+              <div style={{ color: MUT, fontSize: 10, marginTop: 1 }}>
+                {mlLoading
+                  ? "Filling missing PM values for selected station..."
+                  : "Random Forest · selected station only"}
+              </div>
             </div>
             <div style={{ fontSize: 12, color: ACC, fontWeight: 800 }}>92%</div>
           </div>
@@ -1508,6 +1501,8 @@ export default function App() {
   const [cpcbError, setCpcbError] = useState("");
   const [wx, setWx] = useState(null);
   const [wxLoading, setWxLoading] = useState(false);
+  const [mlLoading, setMlLoading] = useState(false);
+  const [mlFilledStations, setMlFilledStations] = useState({});
 
   const activeCities = cpcbCities;
 
@@ -1570,6 +1565,67 @@ export default function App() {
         setWxLoading(false);
       });
   }, [activeCity?.id]);
+
+  useEffect(() => {
+    if (!selectedCity) return;
+
+    const p = selectedCity.p || {};
+
+    const needsML =
+      (!p.PM25 || !p.PM10) &&
+      (p.NO2 || p.SO2 || p.CO || p.O3 || p.NH3);
+
+    if (!needsML) return;
+
+    if (mlFilledStations[selectedCity.id]) return;
+
+    async function fillSelectedStationPM() {
+      try {
+        setMlLoading(true);
+
+        const pred = await predictMissingPM(p);
+
+        const updatedP = {
+          ...p,
+          PM25: p.PM25 || Math.round(pred.PM25 || 0),
+          PM10: p.PM10 || Math.round(pred.PM10 || 0),
+        };
+
+        const updatedAQI = calcAQI(updatedP);
+
+        const updatedStation = {
+          ...selectedCity,
+          p: updatedP,
+          pollutants: updatedP,
+          estimatedAQI: updatedAQI,
+          apiAQI: updatedAQI,
+          aqi: updatedAQI,
+          category: getCat(updatedAQI).label,
+          apiAQISource:
+            "CPCB station data + ML-filled PM for selected station",
+        };
+
+        setCities(prev =>
+          prev.map(c =>
+            c.id === selectedCity.id ? updatedStation : c
+          )
+        );
+
+        setSelectedCity(updatedStation);
+
+        setMlFilledStations(prev => ({
+          ...prev,
+          [selectedCity.id]: true,
+        }));
+      } catch (err) {
+        console.error("Selected station ML fill failed:", err);
+      } finally {
+        setMlLoading(false);
+      }
+    }
+
+    fillSelectedStationPM();
+  }, [selectedCity?.id]);
 
   useEffect(() => {
     const lk = document.createElement("link");
@@ -1650,7 +1706,7 @@ export default function App() {
             <h1 style={{ margin: 0, fontSize: 22, fontWeight: 900, color: TXT, fontFamily: "Outfit,sans-serif" }}>{META[pg].title}</h1>
             <p style={{ margin: "4px 0 0", fontSize: 12, color: MUT }}>{META[pg].sub}</p>
           </div>
-          {pg === "dashboard" && <Dashboard city={activeCity} hist={hist} fc={fc} wx={wx || genWeatherFallback(activeCity.lat)} wxLoading={wxLoading} />}
+          {pg === "dashboard" && <Dashboard city={activeCity} hist={hist} fc={fc} wx={wx || genWeatherFallback(activeCity.lat)} wxLoading={wxLoading} mlLoading={mlLoading} />}
           {pg === "analytics" && <Analytics city={activeCity} hist={hist} />}
           {pg === "map" && <MapView cities={activeCities} sel={activeCity} onSel={setCity} />}
           {pg === "health" && <Health city={activeCity} fc={fc} />}
