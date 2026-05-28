@@ -279,25 +279,24 @@ async function csvToCities(rows) {
     }
   }
 
-  const stations = Object.values(seenStations).map(st => {
+  const stations = Object.values(stationMap).map(st => {
     const p = { ...st.p };
-
-    const apiAQI = calcAQI(p);
+    const estimatedAQI = calcAQI(p);
 
     return {
       ...st,
       p,
       pollutants: p,
 
-      // Keep apiAQI null because data.gov.in pollutant_avg rows are not direct AQI rows.
-      // UI will use estimatedAQI through getAQIValue().
+      // Do not call ML here. Initial page load stays fast.
+      // Missing PM values are filled only when a station is selected.
       apiAQI: null,
       estimatedAQI,
       aqi: estimatedAQI,
       category: getCat(estimatedAQI).label,
 
       stationCount: 1,
-      apiAQISource: "Individual CPCB station pollutant data + ML-filled missing PM + estimated AQI",
+      apiAQISource: "Individual CPCB station pollutant data + estimated AQI",
     };
   });
 
@@ -1567,17 +1566,16 @@ export default function App() {
   }, [activeCity?.id]);
 
   useEffect(() => {
-    if (!selected) return;
+    if (!activeCity) return;
 
-    const p = selected.p || {};
+    const p = activeCity.p || {};
 
     const needsML =
       (!p.PM25 || !p.PM10) &&
       (p.NO2 || p.SO2 || p.CO || p.O3 || p.NH3);
 
     if (!needsML) return;
-
-    if (mlFilledStations[selected.id]) return;
+    if (mlFilledStations[activeCity.id]) return;
 
     async function fillSelectedStationPM() {
       try {
@@ -1594,28 +1592,28 @@ export default function App() {
         const updatedAQI = calcAQI(updatedP);
 
         const updatedStation = {
-          ...selected,
+          ...activeCity,
           p: updatedP,
           pollutants: updatedP,
           estimatedAQI: updatedAQI,
-          apiAQI: updatedAQI,
+          apiAQI: null,
           aqi: updatedAQI,
           category: getCat(updatedAQI).label,
           apiAQISource:
             "CPCB station data + ML-filled PM for selected station",
         };
 
-        setCities(prev =>
+        setCpcbCities(prev =>
           prev.map(c =>
-            c.id === selected.id ? updatedStation : c
+            c.id === activeCity.id ? updatedStation : c
           )
         );
 
-        setselected(updatedStation);
+        setCity(updatedStation);
 
         setMlFilledStations(prev => ({
           ...prev,
-          [selected.id]: true,
+          [activeCity.id]: true,
         }));
       } catch (err) {
         console.error("Selected station ML fill failed:", err);
@@ -1625,7 +1623,7 @@ export default function App() {
     }
 
     fillSelectedStationPM();
-  }, [selected?.id]);
+  }, [activeCity?.id]);
 
   useEffect(() => {
     const lk = document.createElement("link");
