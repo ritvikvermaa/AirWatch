@@ -1,0 +1,498 @@
+city,station,CO,NH3,NO2,O3,PM10,PM25,SO2
+Agra,"Manoharpur, Agra - UPPCB",,9.0,,5.0,117.0,39.0,
+Agra,"Rohta, Agra - UPPCB",10.0,,14.0,17.0,,,8.0
+Agra,"Sanjay Palace, Agra - UPPCB",44.0,,10.0,108.0,133.0,82.0,18.0
+Agra,"Sector-3B Avas Vikas Colony, Agra - UPPCB",23.0,14.0,17.0,10.0,136.0,126.0,11.0
+Agra,"Shahjahan Garden, Agra - UPPCB",11.0,1.0,9.0,1.0,151.0,89.0,25.0
+Agra,"Shastripuram, Agra - UPPCB",16.0,3.0,50.0,14.0,112.0,40.0,11.0
+Ahmedabad,"Chandkheda, Ahmedabad - IITM",35.0,12.0,10.0,46.0,127.0,43.0,4.0
+Ahmedabad,"Gyaspur, Ahmedabad - IITM",24.0,6.0,,18.0,,43.0,20.0
+Ahmedabad,"Maninagar, Ahmedabad - GPCB",20.0,,39.0,,88.0,69.0,
+Ahmedabad,"Raikhad, Ahmedabad - IITM",21.0,,19.0,27.0,88.0,36.0,4.0
+Ahmedabad,"Rakhial, Ahmedabad - IITM",48.0,6.0,30.0,25.0,89.0,15.0,17.0
+Ahmedabad,"SAC ISRO Bopal, Ahmedabad - IITM",8.0,2.0,8.0,51.0,80.0,73.0,2.0
+Ahmedabad,"SAC ISRO Satellite, Ahmedabad - IITM",,4.0,14.0,,81.0,69.0,6.0
+Ahmedabad,"SVPI Airport Hansol, Ahmedabad - IITM",,1.0,20.0,38.0,,40.0,
+Ahmednagar,"Tarakpur, Ahmednagar - MPCB",31.0,5.0,12.0,17.0,35.0,22.0,5.0
+Aizawl,"Sikulpuikawn, Aizawl - Mizoram PCB",3.0,,1.0,,36.0,6.0,15.0
+Ajmer,"Civil Lines,  Ajmer - RSPCB",21.0,9.0,23.0,24.0,98.0,62.0,13.0
+Akola,"Ramdaspeth, Akola - MPCB",19.0,7.0,10.0,65.0,79.0,41.0,20.0
+Alwar,"Moti Doongri, Alwar - RSPCB",46.0,9.0,81.0,31.0,90.0,59.0,38.0
+Amaravati,"Secretariat, Amaravati - APPCB",17.0,3.0,21.0,70.0,72.0,39.0,14.0
+Ambala,"Patti Mehar, Ambala - HSPCB",,8.0,5.0,24.0,120.0,146.0,22.0
+Ambernath,"Chinchpada, Ambernath - MPCB",15.0,3.0,19.0,14.0,22.0,8.0,2.0
+Amravati,"Shivneri Colony, Amravati - MPCB",14.0,4.0,14.0,38.0,70.0,43.0,9.0
+Amravati,"Shri Shivaji Science College, Amravati - MPCB",33.0,8.0,17.0,38.0,79.0,49.0,21.0
+Amritsar,"Golden Temple, Amritsar - PPCB",19.0,6.0,13.0,49.0,115.0,84.0,11.0
+Anantapur,"Gulzarpet, Anantapur - APPCB",29.0,,,34.0,,,
+Angul,"Hakimapada, Angul - OSPCB",54.0,3.0,14.0,111.0,95.0,57.0,23.0
+Ankleshwar,"GIDC, Ankleshwar - GPCB",26.0,6.0,25.0,28.0,68.0,32.0,28.0
+Araria,"Kharahiya Basti, Araria - BSPCB",15.0,5.0,14.0,10.0,44.0,35.0,57.0
+Arrah,"New DM Office, Arrah - BSPCB",56.0,,,8.0,,,
+Asansol,"Asansol Court Area, Asansol - WBPCB",31.0,4.0,33.0,36.0,49.0,40.0,13.0
+Asansol,"Evelyn Lodge, Asansol - WBPCB",11.0,5.0,19.0,27.0,44.0,24.0,70.0
+Asansol,"Mahabir Colliery, Asansol - WBPCB",17.0,,2.0,,47.0,21.0,6.0
+Asansol,"Trivenidevi Bhalotia College, Asansol - WBPCB",110.0,5.0,,14.0,34.0,31.0,14.0
+Aurangabad,"Gurdeo Nagar, Aurangabad - BSPCB",102.0,,,71.0,,,
+Aurangabad,"MIDC Chilkalthana, Aurangabad - MPCB",10.0,2.0,10.0,55.0,95.0,51.0,11.0
+Aurangabad,"Rachnakar Colony, Aurangabad - MPCB",23.0,3.0,12.0,43.0,53.0,32.0,14.0
+Baddi,"HIMUDA Complex Phase-1, Baddi - HPPCB",57.0,3.0,28.0,130.0,,,71.0
+Badlapur,"Katrap, Badlapur - MPCB",41.0,6.0,22.0,57.0,64.0,65.0,7.0
+Bagalkot,"Vidayagiri, Bagalkot - KSPCB",27.0,1.0,12.0,25.0,50.0,35.0,7.0
+Baghpat,"Sardar Patel Inter College, Baghpat - UPPCB",51.0,3.0,35.0,65.0,176.0,139.0,55.0
+Bahadurgarh,"Arya Nagar, Bahadurgarh - HSPCB",49.0,13.0,13.0,26.0,140.0,218.0,6.0
+Balasore,"Kalidaspur, Balasore - OSPCB",44.0,3.0,6.0,64.0,63.0,46.0,8.0
+Ballabgarh,"Nathu Colony, Ballabgarh - HSPCB",,,,15.0,240.0,228.0,
+Banswara,"Rati Talai, Banswara - RSPCB",33.0,3.0,12.0,95.0,109.0,73.0,8.0
+Baran,"Bamboliya, Baran - RSPCB",112.0,9.0,,113.0,127.0,87.0,5.0
+Barbil,"Forest Office, Barbil - OSPCB",14.0,1.0,7.0,48.0,93.0,58.0,11.0
+Bareilly,"Civil Lines, Bareilly - UPPCB",47.0,1.0,8.0,,48.0,45.0,65.0
+Bareilly,"Rajendra Nagar, Bareilly - UPPCB",40.0,1.0,9.0,50.0,62.0,21.0,101.0
+Baripada,"Meher Colony, Baripada - OSPCB",22.0,1.0,16.0,42.0,68.0,50.0,8.0
+Barmer,"Railway Colony, Barmer - RSPCB",23.0,3.0,5.0,36.0,113.0,,7.0
+Barrackpore,"SVSPA Campus, Barrackpore - WBPCB",,,,32.0,,,
+Bathinda,"Hardev Nagar, Bathinda - PPCB",58.0,,34.0,,,,51.0
+Beed,"Bir, Beed - MPCB",26.0,4.0,18.0,31.0,58.0,17.0,1.0
+Begusarai,"Lohiyanagar, Begusarai - BSPCB",18.0,,,41.0,,,
+Belapur,"CBD Belapur, Belapur - MPCB",7.0,,,29.0,,,
+Belgaum,"Ramteerth Nagar, Belgaum - KSPCB",,5.0,40.0,19.0,25.0,19.0,53.0
+Bengaluru,"BTM Layout, Bengaluru - CPCB",49.0,3.0,19.0,28.0,106.0,31.0,16.0
+Bengaluru,"BWSSB Kadabesanahalli, Bengaluru - CPCB",38.0,,7.0,29.0,44.0,28.0,5.0
+Bengaluru,"Bapuji Nagar, Bengaluru - KSPCB",38.0,3.0,34.0,47.0,56.0,19.0,23.0
+Bengaluru,"Hebbal, Bengaluru - KSPCB",33.0,,,82.0,,,
+Bengaluru,"Hombegowda Nagar, Bengaluru - KSPCB",18.0,2.0,29.0,50.0,39.0,26.0,6.0
+Bengaluru,"Jayanagar 5th Block, Bengaluru - KSPCB",19.0,1.0,11.0,38.0,45.0,50.0,
+Bengaluru,"Jigani, Bengaluru - KSPCB",40.0,4.0,23.0,26.0,67.0,45.0,22.0
+Bengaluru,"Peenya, Bengaluru - CPCB",32.0,3.0,25.0,28.0,61.0,28.0,10.0
+Bengaluru,"RVCE-Mailasandra, Bengaluru - KSPCB",,4.0,24.0,29.0,57.0,50.0,
+Bengaluru,"Shivapura_Peenya, Bengaluru - KSPCB",,,,26.0,,,
+Bengaluru,"Silk Board, Bengaluru - KSPCB",54.0,5.0,20.0,19.0,118.0,50.0,13.0
+Bettiah,"Kamalnath Nagar, Bettiah - BSPCB",34.0,,,11.0,,,12.0
+Bhagalpur,"DM Office_Kachari Chowk, Bhagalpur - BSPCB",34.0,,12.0,18.0,,,33.0
+Bhagalpur,"Mayaganj, Bhagalpur - BSPCB",91.0,,,34.0,,,
+Bharatpur,"Krishna Nagar, Bharatpur - RSPCB",42.0,,19.0,115.0,103.0,28.0,9.0
+Bhavnagar,"Vidhyanagar, Bhavnagar - Nexteng Enviro",,4.0,56.0,9.0,71.0,83.0,6.0
+Bhilai,"32Bungalows, Bhilai - CECB",18.0,3.0,16.0,52.0,53.0,38.0,23.0
+Bhilai,"Civic Center, Bhilai - Bhilai Steel Plant",26.0,1.0,13.0,18.0,,34.0,8.0
+Bhilai,"Hathkhoj, Bhilai - CECB",40.0,5.0,38.0,15.0,61.0,37.0,24.0
+Bhilwara,"Pratap Nagar, Bhilwara - RSPCB",,,,67.0,,46.0,
+Bhiwadi,"RIICO Ind. Area III, Bhiwadi - RSPCB",37.0,12.0,43.0,,151.0,115.0,13.0
+Bhiwadi,"Vasundhara Nagar_UIT, Bhiwadi - RSPCB",33.0,,37.0,61.0,169.0,,
+Bhiwandi,"Gokul Nagar, Bhiwandi - MPCB",32.0,5.0,20.0,39.0,62.0,44.0,8.0
+Bhiwani,"H.B. Colony, Bhiwani - HSPCB",,,15.0,16.0,,,
+Bhopal,"Idgah Hills, Bhopal - MPPCB",28.0,5.0,24.0,37.0,128.0,45.0,15.0
+Bhopal,"Paryavaran Parisar, Bhopal - MPPCB",25.0,5.0,12.0,28.0,100.0,34.0,19.0
+Bhopal,"T T Nagar, Bhopal - MPPCB",28.0,,,81.0,126.0,41.0,17.0
+Bhubaneswar,"Patia, Bhubaneswar - OSPCB",43.0,21.0,6.0,64.0,81.0,41.0,6.0
+Bihar Sharif,"D M Colony, Bihar Sharif - BSPCB",62.0,3.0,9.0,2.0,38.0,56.0,8.0
+Bikaner,"MM Ground, Bikaner - RSPCB",56.0,7.0,87.0,67.0,136.0,40.0,9.0
+Bilaspur,"Mangala, Bilaspur - NTPC",99.0,,45.0,,127.0,180.0,17.0
+Bileipada,"Tata Township, Bileipada - OSPCB",23.0,5.0,14.0,16.0,91.0,106.0,15.0
+Boisar,"Khaira, Boisar - MPCB",13.0,5.0,22.0,27.0,46.0,53.0,14.0
+Bulandshahr,"Yamunapuram, Bulandshahr - UPPCB",81.0,10.0,48.0,58.0,148.0,124.0,22.0
+Bundi,"New Colony, Bundi - RSPCB",61.0,16.0,29.0,58.0,78.0,,5.0
+Buxar,"Charitra Van, Buxar - BSPCB",25.0,3.0,9.0,69.0,40.0,45.0,31.0
+Byasanagar,"Ferro Chrome Colony, Byasanagar - OSPCB",55.0,,,76.0,,,
+Byrnihat,"15th Mile-Nongthymmai, Byrnihat - Meghalaya PCB",30.0,,,,158.0,,
+Byrnihat,"Central Academy for SFS, Byrnihat - PCBA",50.0,4.0,,31.0,94.0,126.0,
+Chamarajanagar,"Urban, Chamarajanagar - KSPCB",24.0,2.0,27.0,29.0,47.0,34.0,4.0
+Chandigarh,"Sector 22, Chandigarh - CPCC",78.0,10.0,14.0,100.0,55.0,36.0,15.0
+Chandigarh,"Sector-25, Chandigarh - CPCC",24.0,11.0,20.0,48.0,85.0,68.0,13.0
+Chandrapur,"Chauhan Colony, Chandrapur - MPCB",28.0,2.0,34.0,17.0,100.0,59.0,7.0
+Chandrapur,"MIDC Khutala, Chandrapur - MPCB",39.0,5.0,14.0,95.0,74.0,63.0,7.0
+Charkhi Dadri,"Mini Secretariat, Charkhi Dadri - HSPCB",12.0,6.0,,29.0,84.0,107.0,10.0
+Chennai,"Arumbakkam, Chennai - TNPCB",,5.0,18.0,,87.0,,3.0
+Chennai,"Kodungaiyur, Chennai - TNPCB",29.0,4.0,,30.0,60.0,47.0,6.0
+Chennai,"Manali Village, Chennai - TNPCB",28.0,5.0,,,43.0,27.0,12.0
+Chennai,"Manali, Chennai - CPCB",,6.0,,25.0,,40.0,15.0
+Chennai,"Perungudi, Chennai - TNPCB",41.0,,7.0,6.0,83.0,44.0,4.0
+Chennai,"Royapuram, Chennai - TNPCB",53.0,,14.0,31.0,,40.0,5.0
+Chennai,"Velachery Res. Area, Chennai - CPCB",,3.0,14.0,12.0,72.0,,
+Chhal,"Nawapara SECL Colony, Chhal - CECB",29.0,5.0,17.0,22.0,93.0,60.0,14.0
+Chikkaballapur,"Chikkaballapur Rural, Chikkaballapur - KSPCB",39.0,1.0,4.0,52.0,38.0,24.0,14.0
+Chikkamagaluru,"Kalyana Nagara, Chikkamagaluru - KSPCB",44.0,,,19.0,,,
+Chittoor,"Gangineni Cheruvu, Chittoor - APPCB",21.0,,,58.0,,,
+Chittorgarh,"Shastri Nagar, Chittorgarh - RSPCB",,7.0,12.0,103.0,107.0,62.0,
+Churu,"Subash Chowk, Churu - RSPCB",,7.0,9.0,,,42.0,5.0
+Coimbatore,"SIDCO Kurichi, Coimbatore - TNPCB",6.0,4.0,,,22.0,15.0,25.0
+Cuddalore,"Semmandalam, Cuddalore - TNPCB",,,,,58.0,,
+Cuttack,"CDA Area, Cuttack - OSPCB",26.0,2.0,16.0,56.0,37.0,23.0,6.0
+Dausa,"Khatikan Mohalla, Dausa - RSPCB",76.0,8.0,31.0,64.0,127.0,47.0,4.0
+Dehradun,"Doon University, Dehradun - UKPCB",21.0,,,96.0,108.0,86.0,2.0
+Delhi,"Alipur, Delhi - DPCC",31.0,11.0,44.0,28.0,227.0,173.0,20.0
+Delhi,"Anand Vihar, Delhi - DPCC",28.0,4.0,119.0,33.0,269.0,223.0,31.0
+Delhi,"Ashok Vihar, Delhi - DPCC",43.0,7.0,55.0,45.0,195.0,172.0,42.0
+Delhi,"Aya Nagar, Delhi - IITM",89.0,,25.0,54.0,155.0,138.0,
+Delhi,"Bawana, Delhi - DPCC",38.0,5.0,29.0,36.0,237.0,189.0,32.0
+Delhi,"Burari Crossing, Delhi - IITM",65.0,,35.0,121.0,193.0,149.0,
+Delhi,"CRRI Mathura Road, Delhi - IITM",42.0,,16.0,48.0,193.0,156.0,
+Delhi,"Cantonment Area, Delhi - DPCC ",64.0,1.0,22.0,36.0,96.0,121.0,37.0
+Delhi,"Chandni Chowk, Delhi - IITM",84.0,15.0,68.0,95.0,125.0,126.0,94.0
+Delhi,"Commonwealth Sports Complex, Delhi - DPCC",,5.0,78.0,75.0,156.0,139.0,17.0
+Delhi,"DTU, Delhi - CPCB",22.0,,38.0,,,156.0,31.0
+Delhi,"Dr. Karni Singh Shooting Range, Delhi - DPCC",42.0,9.0,72.0,46.0,,,24.0
+Delhi,"Dwarka-Sector 8, Delhi - DPCC ",43.0,18.0,79.0,46.0,,176.0,37.0
+Delhi,"IGI Airport (T3), Delhi - IITM",47.0,,87.0,58.0,189.0,160.0,
+Delhi,"IGNOU_Maidan Garhi, Delhi - DPCC",55.0,2.0,55.0,43.0,221.0,165.0,36.0
+Delhi,"IHBAS, Dilshad Garden, Delhi - CPCB",23.0,,,10.0,108.0,130.0,22.0
+Delhi,"IIT Delhi, Delhi - IITM",36.0,,24.0,36.0,187.0,116.0,
+Delhi,"IMD Lodhi Road, Delhi - IITM",16.0,,24.0,93.0,172.0,125.0,
+Delhi,"ITO, Delhi - CPCB",50.0,4.0,60.0,62.0,147.0,127.0,15.0
+Delhi,"JNU, Delhi - DPCC",35.0,2.0,43.0,51.0,149.0,117.0,38.0
+Delhi,"Jahangirpuri, Delhi - DPCC",53.0,14.0,83.0,46.0,263.0,168.0,25.0
+Delhi,"Jawaharlal Nehru Stadium, Delhi - DPCC",87.0,,,58.0,,,
+Delhi,"Major Dhyan Chand National Stadium, Delhi - DPCC",68.0,18.0,96.0,15.0,181.0,128.0,30.0
+Delhi,"Mandir Marg, Delhi - DPCC",29.0,4.0,55.0,49.0,168.0,95.0,25.0
+Delhi,"Mundka, Delhi - DPCC",80.0,5.0,128.0,23.0,297.0,207.0,23.0
+Delhi,"NSIT Dwarka, Delhi - CPCB",61.0,,52.0,141.0,,,25.0
+Delhi,"NSUT Jaffarpur, Delhi - DPCC",38.0,6.0,25.0,77.0,179.0,180.0,61.0
+Delhi,"Najafgarh, Delhi - DPCC",10.0,7.0,48.0,50.0,151.0,128.0,33.0
+Delhi,"Narela, Delhi - DPCC",40.0,8.0,32.0,11.0,234.0,198.0,25.0
+Delhi,"Nehru Nagar, Delhi - DPCC",71.0,7.0,72.0,43.0,206.0,146.0,31.0
+Delhi,"North Campus, DU, Delhi - IITM",70.0,,122.0,113.0,175.0,123.0,
+Delhi,"Okhla Phase-2, Delhi - DPCC",54.0,,70.0,33.0,191.0,117.0,
+Delhi,"Patparganj, Delhi - DPCC",57.0,,75.0,46.0,194.0,118.0,19.0
+Delhi,"Punjabi Bagh, Delhi - DPCC",56.0,3.0,,46.0,180.0,143.0,29.0
+Delhi,"Pusa, Delhi - DPCC",81.0,18.0,120.0,34.0,203.0,115.0,
+Delhi,"Pusa, Delhi - IITM",33.0,,,120.0,165.0,134.0,
+Delhi,"R K Puram, Delhi - DPCC",72.0,7.0,72.0,33.0,197.0,169.0,15.0
+Delhi,"Rohini, Delhi - DPCC",42.0,6.0,44.0,34.0,231.0,189.0,27.0
+Delhi,"Shadipur, Delhi - CPCB",56.0,6.0,60.0,38.0,233.0,293.0,11.0
+Delhi,"Sirifort, Delhi - CPCB",27.0,9.0,28.0,28.0,179.0,132.0,34.0
+Delhi,"Sonia Vihar, Delhi - DPCC",81.0,7.0,44.0,55.0,183.0,118.0,32.0
+Delhi,"Sri Aurobindo Marg, Delhi - DPCC",28.0,6.0,54.0,33.0,147.0,102.0,24.0
+Delhi,"Talkatora Garden, Delhi - DPCC",46.0,4.0,24.0,67.0,,,42.0
+Delhi,"Vivek Vihar, Delhi - DPCC",71.0,10.0,85.0,56.0,188.0,110.0,17.0
+Delhi,"Wazirpur, Delhi - DPCC",71.0,,,45.0,247.0,,22.0
+Dewas,"Bhopal Chauraha, Dewas - MPPCB",39.0,4.0,94.0,12.0,115.0,,31.0
+Dhanbad,"Sardar Patel Nagar, Dhanbad - JSPCB",25.0,,102.0,58.0,107.0,19.0,
+Dharuhera,"Municipal Corporation Office, Dharuhera -  HSPCB",92.0,19.0,,37.0,,190.0,11.0
+Dharwad,"Kalabhavan, Dharwad - KSPCB",48.0,5.0,23.0,37.0,91.0,68.0,
+Dholpur,"Raja Ganj, Dholpur - RSPCB",26.0,8.0,26.0,54.0,115.0,135.0,9.0
+Dhule,"Deopur, Dhule - MPCB",6.0,2.0,8.0,41.0,89.0,33.0,
+Dombivli,"Kalu Nagar, Dombivli - MPCB",11.0,1.0,10.0,7.0,19.0,10.0,7.0
+Dungarpur,"Bhoiwada, Dungarpur - RSPCB",16.0,8.0,7.0,64.0,86.0,33.0,10.0
+Durgapur,"Mahishkapur Road_B-Zone, Durgapur - WBPCB",82.0,1.0,7.0,50.0,28.0,26.0,24.0
+Durgapur,"PCBL Residential Complex, Durgapur - WBPCB",20.0,5.0,40.0,1.0,34.0,28.0,9.0
+Durgapur,"Womens College_City Center, Durgapur - WBPCB",32.0,5.0,26.0,28.0,39.0,25.0,12.0
+Eluru,"District Court, Eluru - APPCB",31.0,3.0,26.0,32.0,55.0,56.0,12.0
+Faridabad,"New Industrial Town, Faridabad - HSPCB",,11.0,,23.0,68.0,,
+Faridabad,"Sector 11, Faridabad - HSPCB",,10.0,31.0,15.0,218.0,,8.0
+Faridabad,"Sector 30, Faridabad - HSPCB",62.0,11.0,37.0,10.0,,,
+Fatehabad,"Huda Sector, Fatehabad - HSPCB",37.0,14.0,19.0,18.0,110.0,66.0,22.0
+Firozabad,"Nagla Bhau, Firozabad - UPPCB",29.0,2.0,17.0,12.0,73.0,50.0,28.0
+Firozabad,"Vibhab Nagar, Firozabad - UPPCB",32.0,2.0,15.0,1.0,101.0,78.0,7.0
+Gadag,"Panchal Nagar, Gadag - KSPCB",17.0,3.0,1.0,27.0,25.0,4.0,25.0
+Gandhinagar,"GIFT City, Gandhinagar - IITM",49.0,5.0,21.0,40.0,111.0,29.0,3.0
+Gandhinagar,"IIPHG Lekawada, Gandhinagar - IITM",20.0,1.0,8.0,15.0,91.0,38.0,6.0
+Gandhinagar,"Sector-10, Gandhinagar - GPCB",25.0,1.0,22.0,30.0,92.0,60.0,19.0
+Gangtok,"Zero Point GICI, Gangtok - SSPCB",12.0,1.0,8.0,26.0,,31.0,1.0
+Gaya,"Collectorate, Gaya - BSPCB",,,9.0,29.0,,70.0,
+Gaya,"Kareemganj, Gaya - BSPCB",29.0,1.0,12.0,120.0,119.0,78.0,44.0
+Gaya,"SFTI Kusdihra, Gaya - BSPCB",28.0,4.0,21.0,51.0,57.0,45.0,7.0
+Ghaziabad,"Govindpuram, Ghaziabad - UPPCB",41.0,6.0,38.0,178.0,124.0,76.0,32.0
+Ghaziabad,"Indirapuram, Ghaziabad - UPPCB",62.0,7.0,91.0,21.0,224.0,,16.0
+Ghaziabad,"Loni, Ghaziabad - UPPCB",78.0,5.0,,68.0,,185.0,25.0
+Ghaziabad,"Sanjay Nagar, Ghaziabad - UPPCB",63.0,,66.0,74.0,187.0,142.0,
+Ghaziabad,"Vasundhara, Ghaziabad - UPPCB",23.0,7.0,85.0,97.0,211.0,149.0,24.0
+Gorakhpur,"Madan Mohan Malaviya University of Technology, Gorakhpur - UPPCB",6.0,1.0,,,77.0,,40.0
+Greater Noida,"Knowledge Park - III, Greater Noida - UPPCB",,,,63.0,,,
+Greater Noida,"Knowledge Park - V, Greater Noida - UPPCB",52.0,10.0,75.0,31.0,306.0,,25.0
+Gummidipoondi,"Anthoni Pillai Nagar, Gummidipoondi - TNPCB",,1.0,,,,102.0,
+Guntur,"Rajendra Nagar North, Guntur - APPCB",41.0,8.0,42.0,44.0,50.0,58.0,14.0
+Gurugram,"NISE Gwal Pahari, Gurugram - IITM",42.0,,27.0,72.0,,152.0,
+Gurugram,"Sector-51, Gurugram - HSPCB",33.0,8.0,6.0,36.0,260.0,252.0,10.0
+Gurugram,"Vikas Sadan, Gurugram - HSPCB",94.0,,,21.0,97.0,,5.0
+Guwahati,"IITG, Guwahati - PCBA",8.0,5.0,1.0,5.0,67.0,60.0,32.0
+Guwahati,"LGBI Airport, Guwahati - PCBA",29.0,4.0,15.0,37.0,41.0,52.0,11.0
+Guwahati,"Pan Bazaar, Guwahati - PCBA",37.0,1.0,,18.0,234.0,,23.0
+Guwahati,"Railway Colony, Guwahati - PCBA",,1.0,,2.0,60.0,74.0,35.0
+Gwalior,"City Center, Gwalior - MPPCB",58.0,2.0,43.0,129.0,,,58.0
+Gwalior,"Deen Dayal Nagar, Gwalior - MPPCB",31.0,5.0,32.0,,176.0,100.0,26.0
+Gwalior,"Maharaj Bada, Gwalior - MPPCB",151.0,6.0,59.0,129.0,138.0,65.0,24.0
+Hajipur,"Industrial Area, Hajipur - BSPCB",21.0,18.0,12.0,95.0,91.0,66.0,6.0
+Haldia,"Priyambada Housing Estate, Haldia - WBPCB",26.0,5.0,11.0,66.0,57.0,40.0,10.0
+Hanumangarh,"Housing Board, Hanumangarh - RSPCB",28.0,5.0,16.0,69.0,144.0,68.0,7.0
+Hapur,"Anand Vihar, Hapur - UPPCB",61.0,15.0,85.0,40.0,188.0,175.0,56.0
+Hingoli,"Ashta Vinayak Nagar, Hingoli - MPCB",21.0,2.0,14.0,96.0,47.0,17.0,
+Hisar,"Urban Estate-II, Hisar - HSPCB",59.0,,,108.0,,,
+Howrah,"Belur Math, Howrah - WBPCB",18.0,7.0,37.0,38.0,69.0,41.0,7.0
+Howrah,"Botanical Garden, Howrah - WBPCB",44.0,,16.0,31.0,46.0,33.0,2.0
+Howrah,"Dasnagar, Howrah - WBPCB",31.0,2.0,25.0,68.0,,,12.0
+Howrah,"Ghusuri, Howrah - WBPCB",40.0,2.0,10.0,24.0,98.0,66.0,15.0
+Howrah,"Padmapukur, Howrah - WBPCB",43.0,8.0,28.0,47.0,90.0,35.0,6.0
+Hubballi,"Lingaraj Nagar, Hubballi - KSPCB",17.0,1.0,7.0,26.0,55.0,38.0,2.0
+Hyderabad,"Central University, Hyderabad - TSPCB",15.0,2.0,14.0,11.0,,,5.0
+Hyderabad,"ECIL Kapra, Hyderabad - TSPCB",23.0,,12.0,21.0,,,
+Hyderabad,"ICRISAT Patancheru, Hyderabad - TSPCB",14.0,1.0,17.0,48.0,59.0,,11.0
+Hyderabad,"IDA Pashamylaram, Hyderabad - TSPCB",21.0,,,36.0,,,
+Hyderabad,"IITH Kandi, Hyderabad - TSPCB",35.0,2.0,13.0,29.0,86.0,51.0,14.0
+Hyderabad,"Kokapet, Hyderabad - TSPCB",35.0,3.0,14.0,24.0,77.0,56.0,12.0
+Hyderabad,"Kompally Municipal Office, Hyderabad - TSPCB",,3.0,,,,53.0,
+Hyderabad,"Nacharam_TSIIC IALA, Hyderabad - TSPCB",31.0,5.0,,24.0,84.0,53.0,13.0
+Hyderabad,"New Malakpet, Hyderabad - TSPCB",36.0,,,30.0,,,
+Hyderabad,"Ramachandrapuram, Hyderabad - TSPCB",28.0,,15.0,18.0,77.0,,36.0
+Hyderabad,"Sanathnagar, Hyderabad - TSPCB",,,52.0,17.0,,28.0,11.0
+Hyderabad,"Somajiguda, Hyderabad - TSPCB",45.0,4.0,15.0,,63.0,18.0,21.0
+Hyderabad,"Zoo Park, Hyderabad - TSPCB",16.0,3.0,5.0,24.0,19.0,15.0,2.0
+Indore,"Airport Area, Indore - IMC",46.0,,19.0,12.0,83.0,84.0,6.0
+Indore,"Chhoti Gwaltoli, Indore - MPPCB",80.0,11.0,101.0,10.0,111.0,47.0,9.0
+Indore,"Maguda Nagar, Indore - IMC",19.0,,,14.0,,,
+Indore,"Regional Park, Indore - IMC",99.0,2.0,18.0,7.0,37.0,52.0,21.0
+Indore,"Residency Area, Indore - IMC",25.0,,8.0,10.0,63.0,50.0,3.0
+Jabalpur,"Govindh Bhavan Colony, Jabalpur - JMC",31.0,3.0,13.0,91.0,50.0,47.0,6.0
+Jabalpur,"Gupteshwar, Jabalpur - JMC",33.0,2.0,13.0,64.0,116.0,60.0,26.0
+Jabalpur,"Marhatal, Jabalpur - MPPCB",102.0,2.0,33.0,75.0,124.0,126.0,
+Jabalpur,"Suhagi, Jabalpur - JMC",60.0,3.0,50.0,51.0,62.0,,14.0
+Jaipur,"Adarsh Nagar, Jaipur - RSPCB",25.0,7.0,26.0,38.0,119.0,147.0,16.0
+Jaipur,"Mansarovar Sector-12, Jaipur - RSPCB",25.0,10.0,24.0,77.0,140.0,48.0,6.0
+Jaipur,"Police Commissionerate, Jaipur - RSPCB",74.0,22.0,132.0,39.0,110.0,95.0,26.0
+Jaipur,"RIICO Sitapura, Jaipur - RSPCB",36.0,2.0,35.0,52.0,162.0,82.0,2.0
+Jaipur,"Sector-2 Murlipura, Jaipur - RSPCB",53.0,5.0,33.0,46.0,140.0,110.0,8.0
+Jaipur,"Shastri Nagar, Jaipur - RSPCB",56.0,13.0,49.0,28.0,128.0,124.0,26.0
+Jaisalmer,"Sadar Bazar, Jaisalmer - RSPCB",12.0,,6.0,60.0,118.0,51.0,3.0
+Jalandhar,"Civil Line, Jalandhar - PPCB",58.0,5.0,19.0,46.0,91.0,98.0,18.0
+Jalgaon,"Prabhat Colony, Jalgaon - MPCB",42.0,4.0,10.0,54.0,64.0,47.0,7.0
+Jalore,"Mudtra Sili, Jalore - RSPCB",21.0,4.0,8.0,55.0,98.0,34.0,10.0
+Jhalawar,"Rajlaxmi Nagar, Jhalawar - RSPCB",27.0,,12.0,100.0,101.0,,9.0
+Jhansi,"Shivaji Nagar, Jhansi - UPPCB",30.0,4.0,6.0,7.0,84.0,50.0,18.0
+Jhunjhunu,"Indra Nagar, Jhunjhunu - RSPCB",18.0,9.0,,47.0,123.0,70.0,4.0
+Jind,"Police Lines, Jind - HSPCB",56.0,5.0,44.0,25.0,101.0,139.0,2.0
+Jodhpur,"Collectorate, Jodhpur - RSPCB",21.0,9.0,20.0,56.0,83.0,47.0,7.0
+Jodhpur,"Digari Kalan, Jodhpur - RSPCB",10.0,5.0,13.0,65.0,95.0,28.0,4.0
+Jodhpur,"Jhalamand, Jodhpur - RSPCB",14.0,6.0,8.0,56.0,88.0,35.0,
+Jodhpur,"Mandor, Jodhpur - RSPCB",8.0,,,,110.0,36.0,6.0
+Jodhpur,"Samrat Ashok Udhyan, Jodhpur - RSPCB",10.0,6.0,4.0,,113.0,34.0,2.0
+Jorapokhar,"Tata Stadium, Jorapokhar - JSPCB",39.0,3.0,8.0,3.0,104.0,87.0,4.0
+Kadapa,"Yerramukkapalli, Kadapa - APPCB",31.0,,,44.0,47.0,,
+Kaithal,"Rishi Nagar, Kaithal - HSPCB",,6.0,31.0,13.0,151.0,188.0,
+Kalaburagi,"Mahatma Basaveswar Colony, Kalaburgi - KSPCB",48.0,2.0,13.0,13.0,24.0,19.0,4.0
+Kannur,"Thavakkara, Kannur - Kerala PCB",11.0,1.0,14.0,27.0,64.0,82.0,1.0
+Kanpur,"FTI Kidwai Nagar, Kanpur - UPPCB",37.0,3.0,26.0,9.0,78.0,77.0,
+Kanpur,"NSI Kalyanpur, Kanpur - UPPCB",18.0,2.0,28.0,17.0,69.0,52.0,29.0
+Kanpur,"Nehru Nagar, Kanpur - UPPCB",48.0,,42.0,16.0,70.0,94.0,12.0
+Karauli,"Satyawati Vihar, Karauli - RSPCB",25.0,8.0,47.0,94.0,,65.0,9.0
+Karnal,"Sector-12, Karnal - HSPCB",13.0,6.0,6.0,59.0,114.0,170.0,12.0
+Kashipur,"Govt. Girls Inter College, Kashipur - UKPCB",15.0,4.0,14.0,26.0,82.0,94.0,6.0
+Katihar,"Mirchaibari, Katihar - BSPCB",75.0,,,10.0,,,
+Katni,"Gole Bazar, Katni - MPPCB",27.0,4.0,28.0,64.0,147.0,70.0,59.0
+Keonjhar,"Jagamohanpur, Keonjhar - OSPCB",88.0,2.0,14.0,45.0,84.0,84.0,7.0
+Khanna,"Kalal Majra, Khanna - PPCB",69.0,7.0,28.0,34.0,105.0,123.0,16.0
+Khora,"Prashant Garden, Khora - UPPCB",44.0,9.0,123.0,145.0,240.0,282.0,16.0
+Khurja,"Kalindi Kunj, Khurja - UPPCB",19.0,,,20.0,,,
+Kishanganj,"SDM Office_Khagra, Kishanganj - BSPCB",14.0,3.0,7.0,33.0,91.0,91.0,9.0
+Kohima,"PWD Junction, Kohima - NPCB",6.0,1.0,3.0,,32.0,36.0,39.0
+Kolhapur,"Shivaji University, Kolhapur - MPCB",15.0,3.0,12.0,25.0,24.0,16.0,6.0
+Kolhapur,"Sinchan Bhavan, Kolhapur - MPCB",14.0,4.0,12.0,33.0,38.0,23.0,2.0
+Kolkata,"Ballygunge, Kolkata - WBPCB",11.0,6.0,20.0,28.0,52.0,42.0,4.0
+Kolkata,"Bidhannagar, Kolkata - WBPCB",26.0,6.0,13.0,41.0,61.0,49.0,7.0
+Kolkata,"Fort William, Kolkata - WBPCB",16.0,9.0,19.0,23.0,59.0,56.0,5.0
+Kolkata,"Jadavpur, Kolkata - WBPCB",39.0,7.0,6.0,16.0,44.0,47.0,4.0
+Kolkata,"Rabindra Bharati University, Kolkata - WBPCB",38.0,6.0,31.0,37.0,51.0,44.0,8.0
+Kolkata,"Rabindra Sarobar, Kolkata - WBPCB",20.0,7.0,27.0,27.0,45.0,30.0,6.0
+Kolkata,"Victoria, Kolkata - WBPCB",35.0,9.0,23.0,30.0,102.0,62.0,8.0
+Kollam,"Polayathode, Kollam - Kerala PCB",15.0,,,,,,
+Koppal,"Diwator Nagar, Koppal - KSPCB",38.0,3.0,16.0,40.0,55.0,36.0,14.0
+Korba,"Rampur, Korba - CECB",24.0,1.0,31.0,24.0,49.0,34.0,9.0
+Korba,"Urja Nagar, Korba - CECB",31.0,1.0,24.0,5.0,74.0,19.0,17.0
+Kota,"Dhanmandi, Kota - RSPCB",31.0,7.0,30.0,54.0,131.0,50.0,16.0
+Kota,"Nayapura, Kota - RSPCB",28.0,4.0,19.0,43.0,114.0,49.0,12.0
+Kota,"Shrinath Puram, Kota - RSPCB",31.0,4.0,14.0,12.0,96.0,120.0,9.0
+Kunjemura,"OP Jindal School, Kunjemura - CECB",31.0,2.0,31.0,45.0,94.0,61.0,18.0
+Kurukshetra,"Sector-7, Kurukshetra - HSPCB",16.0,5.0,19.0,89.0,160.0,123.0,17.0
+Latur,"Sawe Wadi, Latur - MPCB",18.0,,,15.0,57.0,46.0,3.0
+Lucknow,"B R Ambedkar University, Lucknow - UPPCB",23.0,4.0,12.0,81.0,123.0,71.0,30.0
+Lucknow,"Gomti Nagar, Lucknow - UPPCB",51.0,,11.0,62.0,57.0,56.0,11.0
+Lucknow,"Kendriya Vidyalaya, Lucknow - CPCB",40.0,14.0,20.0,69.0,138.0,117.0,9.0
+Lucknow,"Kukrail Picnic Spot-1, Lucknow - UPPCB",15.0,6.0,31.0,82.0,124.0,71.0,20.0
+Lucknow,"Lalbagh, Lucknow - CPCB",24.0,14.0,41.0,87.0,102.0,93.0,4.0
+Lucknow,"Talkatora District Industries Center, Lucknow - CPCB",53.0,13.0,48.0,40.0,127.0,153.0,9.0
+Ludhiana,"Punjab Agricultural University, Ludhiana - PPCB",29.0,9.0,54.0,76.0,109.0,86.0,22.0
+Machilipatnam,"Srinivas Nagar Colony, Machilipatnam - APPCB",28.0,3.0,14.0,24.0,62.0,64.0,15.0
+Madikeri,"Stuart Hill, Madikeri - KSPCB",14.0,,,3.0,32.0,35.0,7.0
+Mahad,"Kamble Tarf Birwadi, Mahad - MPCB",40.0,4.0,26.0,53.0,60.0,55.0,28.0
+Maihar,"Sahilara, Maihar - KJS Cements",52.0,,57.0,,41.0,20.0,9.0
+Mandi Gobindgarh,"RIMT University, Mandi Gobindgarh - PPCB",86.0,7.0,28.0,51.0,207.0,224.0,24.0
+Mandideep,"Sector-D Industrial Area, Mandideep - MPPCB",20.0,8.0,31.0,62.0,132.0,119.0,24.0
+Mandikhera,"General Hospital, Mandikhera(Nuh) - HSPCB",101.0,10.0,21.0,56.0,51.0,43.0,26.0
+Manesar,"Sector-2 IMT, Manesar - HSPCB",27.0,10.0,30.0,24.0,139.0,216.0,15.0
+Mangalore,"Kadri, Mangalore - KSPCB",,,,37.0,,,
+Manguraha,"Forest Rest House, Manguraha - BSPCB",32.0,,,11.0,,,
+Meerut,"Ganga Nagar, Meerut - UPPCB",,10.0,,,183.0,139.0,56.0
+Meerut,"Jai Bhim Nagar, Meerut - UPPCB",,1.0,24.0,149.0,192.0,115.0,
+Meerut,"Pallavpuram Phase 2, Meerut - UPPCB",50.0,12.0,47.0,217.0,197.0,184.0,39.0
+Mehsana,"Sadanand Nagar, Mehsana - Nexteng Enviro",69.0,2.0,18.0,18.0,,75.0,10.0
+Milupara,"Govt. Higher Secondary School, Milupara - CECB",19.0,2.0,43.0,214.0,83.0,58.0,20.0
+Mira-Bhayandar,"Bhayandar West, Mira-Bhayandar - MPCB",14.0,3.0,5.0,58.0,,19.0,
+Moradabad,"Buddhi Vihar, Moradabad - UPPCB",32.0,5.0,29.0,33.0,100.0,53.0,24.0
+Moradabad,"Eco Herbal Park, Moradabad - UPPCB",41.0,6.0,25.0,102.0,94.0,55.0,18.0
+Moradabad,"Employment Office, Moradabad - UPPCB",18.0,4.0,16.0,77.0,116.0,76.0,32.0
+Moradabad,"Jigar Colony, Moradabad - UPPCB",40.0,6.0,25.0,22.0,115.0,54.0,47.0
+Moradabad,"Kashiram Nagar, Moradabad - UPPCB",37.0,4.0,25.0,127.0,105.0,,87.0
+Moradabad,"Transport Nagar, Moradabad - UPPCB",68.0,5.0,,,113.0,61.0,29.0
+Motihari,"Gandak Colony, Motihari - BSPCB",13.0,3.0,3.0,26.0,40.0,36.0,3.0
+Mumbai,"Bandra Kurla Complex, Mumbai - IITM",13.0,6.0,4.0,19.0,50.0,19.0,2.0
+Mumbai,"Bandra Kurla Complex, Mumbai - MPCB",9.0,,17.0,12.0,34.0,30.0,3.0
+Mumbai,"Borivali East, Mumbai - IITM",38.0,2.0,20.0,52.0,41.0,22.0,
+Mumbai,"Borivali East, Mumbai - MPCB",8.0,1.0,16.0,12.0,18.0,8.0,19.0
+Mumbai,"Byculla, Mumbai - BMC",40.0,1.0,11.0,17.0,43.0,16.0,2.0
+Mumbai,"Chakala-Andheri East, Mumbai - IITM",41.0,7.0,17.0,37.0,73.0,17.0,15.0
+Mumbai,"Chembur, Mumbai - MPCB",30.0,22.0,28.0,19.0,33.0,22.0,2.0
+Mumbai,"Chhatrapati Shivaji Intl. Airport (T2), Mumbai - MPCB",,,26.0,,27.0,24.0,7.0
+Mumbai,"Colaba, Mumbai - MPCB",,4.0,27.0,11.0,21.0,13.0,
+Mumbai,"Deonar, Mumbai - IITM",47.0,10.0,6.0,16.0,,11.0,3.0
+Mumbai,"Ghatkopar, Mumbai - BMC",24.0,,,40.0,41.0,29.0,3.0
+Mumbai,"Kandivali West, Mumbai - BMC",13.0,1.0,9.0,42.0,26.0,10.0,1.0
+Mumbai,"Kherwadi_Bandra East, Mumbai - MPCB",8.0,11.0,2.0,,26.0,11.0,3.0
+Mumbai,"Khindipada-Bhandup West, Mumbai - IITM",23.0,3.0,9.0,27.0,,,11.0
+Mumbai,"Kurla, Mumbai - MPCB",,,6.0,28.0,,,
+Mumbai,"Malad West, Mumbai - IITM",32.0,3.0,23.0,19.0,47.0,,7.0
+Mumbai,"Mazgaon, Mumbai - IITM",,,13.0,28.0,36.0,26.0,8.0
+Mumbai,"Mindspace-Malad West, Mumbai - MPCB",19.0,2.0,5.0,25.0,14.0,10.0,13.0
+Mumbai,"Mulund West, Mumbai - MPCB",,4.0,16.0,,38.0,5.0,
+Mumbai,"Navy Nagar-Colaba, Mumbai - IITM",29.0,9.0,111.0,23.0,32.0,21.0,15.0
+Mumbai,"Powai, Mumbai - MPCB",,2.0,7.0,9.0,13.0,7.0,19.0
+Mumbai,"Sewri, Mumbai - BMC",14.0,,,17.0,,,
+Mumbai,"Shivaji Nagar, Mumbai - BMC",17.0,3.0,9.0,10.0,62.0,16.0,10.0
+Mumbai,"Siddharth Nagar-Worli, Mumbai - IITM",26.0,1.0,23.0,4.0,39.0,16.0,
+Mumbai,"Sion, Mumbai - MPCB",15.0,6.0,39.0,30.0,57.0,66.0,51.0
+Mumbai,"Worli, Mumbai -MPCB",9.0,3.0,13.0,24.0,30.0,,31.0
+Munger,"Town Hall, Munger - BSPCB",14.0,,7.0,9.0,,,
+Muzaffarnagar,"New Mandi, Muzaffarnagar - UPPCB",64.0,4.0,43.0,191.0,189.0,172.0,
+Muzaffarpur,"Buddha Colony, Muzaffarpur - BSPCB",21.0,9.0,16.0,83.0,53.0,38.0,2.0
+Muzaffarpur,"MIT-Daudpur Kothi, Muzaffarpur - BSPCB",33.0,,6.0,33.0,,,
+Mysuru,"Hebbal 1st Stage, Mysuru - KSPCB",23.0,,,48.0,,,
+Nagaon,"Christianpatty, Nagaon - PCBA",12.0,2.0,1.0,6.0,50.0,56.0,10.0
+Nagaur,"Karni Colony, Nagaur - RSPCB",11.0,6.0,6.0,58.0,92.0,31.0,3.0
+Nagpur,"Ambazari, Nagpur - MPCB",14.0,4.0,18.0,50.0,93.0,60.0,13.0
+Nagpur,"Mahal, Nagpur - MPCB",52.0,6.0,27.0,86.0,102.0,77.0,47.0
+Nagpur,"Opp GPO Civil Lines, Nagpur - MPCB",27.0,3.0,16.0,33.0,104.0,58.0,16.0
+Nagpur,"Ram Nagar, Nagpur - MPCB",12.0,,,36.0,,,
+Naharlagun,"Naharlagun, Naharlagun - APSPCB",12.0,1.0,7.0,6.0,63.0,48.0,10.0
+Nalbari,"Bata Chowk, Nalbari - PCBA",20.0,6.0,14.0,18.0,44.0,55.0,8.0
+Nanded,"Sneh Nagar, Nanded - MPCB",23.0,4.0,19.0,110.0,53.0,43.0,1.0
+Nandesari,"GIDC, Nandesari - Nandesari Ind. Association",25.0,,21.0,,49.0,37.0,3.0
+Narnaul,"Shastri Nagar, Narnaul - HSPCB",44.0,5.0,26.0,29.0,123.0,173.0,3.0
+Nashik,"Gangapur Road, Nashik - MPCB",22.0,3.0,5.0,13.0,40.0,19.0,
+Nashik,"Hirawadi, Nashik - MPCB",41.0,1.0,2.0,39.0,30.0,21.0,
+Nashik,"MIDC Ambad, Nashik - MPCB",16.0,2.0,8.0,30.0,63.0,35.0,3.0
+Nashik,"Pandav Nagari, Nashik - MPCB",,2.0,8.0,35.0,39.0,23.0,2.0
+Navi Mumbai,"Kopripada-Vashi, Navi Mumbai - MPCB",,8.0,9.0,,67.0,50.0,3.0
+Navi Mumbai,"Mahape, Navi Mumbai - MPCB",,1.0,55.0,,53.0,,17.0
+Navi Mumbai,"Nerul, Navi Mumbai - MPCB",,7.0,59.0,,,,
+Navi Mumbai,"Sanpada, Navi Mumbai - MPCB",16.0,2.0,,,32.0,,16.0
+Nayagarh,"Dabuna, Nayagarh - OSPCB",15.0,5.0,10.0,15.0,97.0,62.0,11.0
+Nellore,"Ambedkar Nagar, Nellore - APPCB ",35.0,4.0,26.0,48.0,54.0,59.0,13.0
+Noida,"Sector - 125, Noida - UPPCB",36.0,19.0,77.0,78.0,259.0,179.0,13.0
+Noida,"Sector - 62, Noida - IITM",31.0,,62.0,118.0,182.0,145.0,
+Noida,"Sector-1, Noida - UPPCB",46.0,11.0,90.0,95.0,229.0,130.0,24.0
+Noida,"Sector-116, Noida - UPPCB",58.0,10.0,82.0,67.0,,147.0,23.0
+Pali,"Indira Colony Vistar, Pali - RSPCB",19.0,5.0,16.0,69.0,120.0,80.0,9.0
+Palwal,"Shyam Nagar, Palwal - HSPCB",95.0,9.0,24.0,57.0,83.0,50.0,12.0
+Pampore,"Khrew, Pampore - JKPCC",,,30.0,,44.0,31.0,5.0
+Panchgaon,"Amity University, Panchgaon - IITM",60.0,,,61.0,110.0,164.0,17.0
+Panchkula,"Sector-6, Panchkula - HSPCB ",10.0,,24.0,50.0,,145.0,14.0
+Panipat,"Sector-18, Panipat - HSPCB",40.0,3.0,31.0,30.0,200.0,73.0,19.0
+Parbhani,"Masoom Colony, Parbhani - MPCB",12.0,,20.0,85.0,,33.0,
+Patiala,"Model Town, Patiala - PPCB",31.0,6.0,18.0,34.0,112.0,59.0,20.0
+Patna,"DRM Office Danapur, Patna - BSPCB",46.0,9.0,37.0,13.0,100.0,88.0,7.0
+Patna,"Govt. High School Shikarpur, Patna - BSPCB",54.0,5.0,,65.0,103.0,60.0,9.0
+Patna,"IGSC Planetarium Complex, Patna - BSPCB",29.0,,2.0,60.0,,32.0,16.0
+Patna,"Muradpur, Patna - BSPCB",48.0,5.0,3.0,64.0,126.0,75.0,13.0
+Patna,"Rajbansi Nagar, Patna - BSPCB",69.0,3.0,30.0,30.0,56.0,34.0,10.0
+Patna,"Samanpura, Patna - BSPCB",25.0,5.0,18.0,34.0,102.0,76.0,5.0
+Perundurai,"SIPCOT Industrial Park, Perundurai - TNPCB",,,10.0,,42.0,,15.0
+Pimpri-Chinchwad,"Bhosari,Pimpri-Chinchwad - IITM",33.0,,16.0,,,22.0,
+Pimpri-Chinchwad,"Bhumkar Nagar, Pimpri-Chinchwad - IITM",21.0,,19.0,24.0,44.0,,
+Pimpri-Chinchwad,"Gavalinagar, Pimpri Chinchwad - MPCB",13.0,1.0,9.0,28.0,48.0,26.0,
+Pimpri-Chinchwad,"Park Street Wakad, Pimpri Chinchwad - MPCB",14.0,4.0,18.0,13.0,52.0,33.0,
+Pimpri-Chinchwad,"Savta Mali Nagar, Pimpri-Chinchwad - IITM",20.0,,14.0,39.0,41.0,23.0,
+Pimpri-Chinchwad,"Thergaon, Pimpri Chinchwad - MPCB",24.0,7.0,26.0,39.0,74.0,36.0,
+Pimpri-Chinchwad,"Transport Nagar-Nigdi, Pimpri-Chinchwad- IITM",47.0,,17.0,24.0,41.0,22.0,
+Pithampur,"Sector-2 Industrial Area, Pithampur - MPPCB",38.0,8.0,9.0,69.0,126.0,58.0,
+Pratapgarh,"Pragati Nagar, Pratapgarh - RSPCB",11.0,,12.0,94.0,116.0,40.0,6.0
+Prayagraj,"Jhunsi, Prayagraj - UPPCB",16.0,6.0,6.0,54.0,79.0,54.0,48.0
+Prayagraj,"Motilal Nehru NIT, Prayagraj - UPPCB",11.0,8.0,12.0,65.0,80.0,44.0,26.0
+Prayagraj,"Nagar Nigam, Prayagraj - UPPCB",18.0,12.0,5.0,12.0,66.0,39.0,38.0
+Puducherry,"Jawahar Nagar, Puducherry - PPCC",21.0,4.0,13.0,79.0,42.0,36.0,6.0
+Pune,"Dhankawadi, Pune - IITM",19.0,,23.0,10.0,44.0,20.0,
+Pune,"Katraj Dairy, Pune - MPCB",36.0,1.0,11.0,45.0,26.0,15.0,3.0
+Pune,"Mhada Colony, Pune - IITM",61.0,,21.0,28.0,46.0,35.0,
+Pune,"Panchawati_Pashan, Pune - IITM",40.0,,9.0,16.0,32.0,18.0,
+Pune,"Revenue Colony-Shivajinagar, Pune - IITM",19.0,,14.0,23.0,34.0,20.0,13.0
+Pune,"Savitribai Phule Pune University, Pune - MPCB",28.0,,,,,,
+Purnia,"Mariam Nagar, Purnia - BSPCB",75.0,,,22.0,,,
+Raebareli," Indira Nagar, Raebareli - NTPC Unchahar",123.0,9.0,,158.0,93.0,78.0,13.0
+Raipur,"AIIMS, Raipur - CECB",27.0,4.0,24.0,19.0,72.0,52.0,6.0
+Raipur,"Bhatagaon New ISBT, Raipur - CECB",32.0,2.0,11.0,5.0,58.0,41.0,6.0
+Raipur,"Krishak Nagar, Raipur - CECB",7.0,,,76.0,,,
+Raipur,"Siltara Phase-II, Raipur - CECB",19.0,3.0,22.0,15.0,,138.0,34.0
+Rairangpur,"Divisional Forest Office, Rairangpur - OSPCB",13.0,3.0,7.0,20.0,74.0,37.0,10.0
+Rajamahendravaram,"Anand Kala Kshetram, Rajamahendravaram - APPCB",35.0,2.0,16.0,34.0,63.0,46.0,8.0
+Rajgir,"Dangi Tola, Rajgir - BSPCB",40.0,3.0,14.0,27.0,38.0,43.0,3.0
+Rajkot,"Mavdi, Rajkot - Nexteng Enviro ",73.0,3.0,72.0,4.0,60.0,19.0,6.0
+Rajsamand,"Dhoinda, Rajsamand - RSPCB",18.0,5.0,14.0,58.0,,,6.0
+Ramanagara,"Vijay Nagar, Ramanagara - KSPCB",28.0,,,32.0,33.0,33.0,19.0
+Ratlam,"Shasthri Nagar, Ratlam - IPCA Lab",,,10.0,,101.0,48.0,34.0
+Rishikesh,"Shivaji Nagar, Rishikesh - UKPCB",37.0,24.0,4.0,79.0,71.0,2.0,1.0
+Rohtak,"MD University, Rohtak - HSPCB",35.0,,9.0,28.0,126.0,132.0,12.0
+Rourkela,"Fertilizer Township, Rourkela - OSPCB",24.0,,,,,,
+Rourkela,"Raghunathpali, Rourkela - OSPCB",38.0,2.0,15.0,10.0,72.0,66.0,5.0
+Rourkela,"Sector-2, Rourkela - OSPCB",10.0,,10.0,,77.0,35.0,
+Sagar,"Civil Lines, Sagar - MPPCB",43.0,2.0,16.0,77.0,118.0,76.0,11.0
+Saharsa,"Police Line, Saharsa - BSPCB",20.0,4.0,,14.0,49.0,,10.0
+Samastipur,"DM Office_Kasipur, Samastipur - BSPCB",,1.0,8.0,8.0,,15.0,
+Sangli,"Vijay Nagar, Sangli - MPCB",21.0,2.0,6.0,30.0,25.0,20.0,5.0
+Sasaram,"Dada Peer, Sasaram - BSPCB",53.0,4.0,4.0,15.0,,,
+Satara,"Koyana Nagar, Satara - MPCB",18.0,2.0,9.0,42.0,35.0,19.0,
+Satna,"Bandhavgar Colony, Satna - Birla Cement",28.0,,12.0,44.0,71.0,50.0,23.0
+Sawai Madhopur,"Sahu Nagar, Sawai Madhopur - RSPCB",40.0,5.0,17.0,84.0,134.0,36.0,6.0
+Shivamogga,"Vinoba Nagara, Shivamogga - KSPCB",24.0,3.0,21.0,22.0,41.0,31.0,3.0
+Sikar,"Radhakishan Pura, Sikar - RSPCB",25.0,12.0,18.0,82.0,130.0,46.0,3.0
+Silchar,"Tarapur, Silchar - PCBA",26.0,1.0,17.0,5.0,43.0,30.0,6.0
+Siliguri,"Ward-32 Bapupara, Siliguri - WBPCB",51.0,9.0,68.0,25.0,54.0,28.0,13.0
+Singrauli,"Suryakiran Bhawan NCL, Singrauli - MPPCB",52.0,3.0,41.0,35.0,257.0,152.0,44.0
+Sirohi,"Vedhaynath Colony, Sirohi - RSPCB",11.0,3.0,8.0,77.0,108.0,30.0,5.0
+Sirsa,"F-Block, Sirsa - HSPCB",,,16.0,,,,
+Sivasagar,"Girls College, Sivasagar - PCBA",18.0,9.0,16.0,61.0,40.0,29.0,9.0
+Solapur,"Dnyaneshwar Nagar, Solapur - MPCB",5.0,13.0,11.0,37.0,35.0,18.0,4.0
+Solapur,"Ratandeep Housing Society, Solapur - MPCB",32.0,4.0,38.0,30.0,58.0,25.0,5.0
+Sonipat,"Murthal, Sonipat - HSPCB",40.0,10.0,,50.0,,,12.0
+Sri Ganganagar,"Old City, Sri Ganganagar - RSPCB",68.0,6.0,62.0,164.0,119.0,43.0,4.0
+Srinagar,"Khunmoh, Srinagar - JKPCC",,,,,63.0,29.0,5.0
+Srinagar,"Rajbagh, Srinagar - JKPCC",14.0,,,1.0,36.0,23.0,3.0
+Suakati,"OMC Colony, Suakati - OSPCB",16.0,4.0,10.0,31.0,92.0,63.0,11.0
+Surat,"Katargam, Surat - Nexteng Enviro",35.0,,7.0,13.0,85.0,90.0,4.0
+Surat,"Science Center, Surat - SMC",49.0,,15.0,,32.0,27.0,15.0
+Talcher,"Talcher Coalfields,Talcher - OSPCB",63.0,6.0,22.0,12.0,48.0,,36.0
+Thane,"Kasarvadavali, Thane - MPCB",10.0,2.0,13.0,36.0,48.0,33.0,2.0
+Thane,"Upvan Fort, Thane - MPCB",23.0,1.0,7.0,46.0,54.0,42.0,10.0
+Thiruvananthapuram,"Kariavattom, Thiruvananthapuram - Kerala PCB",21.0,,,31.0,,,
+Thiruvananthapuram,"Plammoodu, Thiruvananthapuram - Kerala PCB",11.0,,,14.0,19.0,13.0,17.0
+Thoothukudi,"Meelavittan, Thoothukudi - TNPCB",28.0,,,,,,10.0
+Thrissur,"Corporation Ground, Thrissur - Kerala PCB",14.0,,7.0,29.0,68.0,44.0,
+Tirumala,"Toll Gate, Tirumala - APPCB",22.0,3.0,56.0,44.0,,,
+Tirupati,"Vaikuntapuram, Tirupati - APPCB",24.0,5.0,34.0,42.0,64.0,42.0,13.0
+Tonk,"Shastri Nagar, Tonk - RSPCB",14.0,8.0,10.0,74.0,127.0,58.0,7.0
+Tumakuru,"Thimmalapura, Tumakuru - KSPCB",54.0,3.0,24.0,23.0,,,
+Tumidih,"OP Jindal Industrial Park, Tumidih - CECB",28.0,2.0,67.0,43.0,96.0,78.0,9.0
+Udaipur,"Ashok Nagar, Udaipur - RSPCB",38.0,4.0,13.0,40.0,167.0,134.0,10.0
+Ujjain,"Mahashweta Nagar, Ujjain - MPPCB",20.0,12.0,32.0,51.0,94.0,56.0,5.0
+Ulhasnagar,"Sidhi Vinayak Nagar, Ulhasnagar - MPCB",15.0,5.0,23.0,38.0,40.0,28.0,8.0
+Ulhasnagar,"Vithalwadi, Ulhasnagar - MPCB",35.0,2.0,13.0,18.0,21.0,8.0,
+Vadodara,"Bapunagar, Vadodara - Nexteng Enviro",77.0,3.0,8.0,4.0,79.0,69.0,8.0
+Vapi,"Phase-1 GIDC, Vapi - GPCB",,5.0,22.0,17.0,82.0,68.0,20.0
+Varanasi,"Ardhali Bazar, Varanasi - UPPCB",14.0,,41.0,,,89.0,16.0
+Varanasi,"Bhelupur, Varanasi - UPPCB",10.0,1.0,,,108.0,47.0,25.0
+Varanasi,"IESD Banaras Hindu University, Varanasi - UPPCB",,,,,93.0,,19.0
+Varanasi,"Maldahiya, Varanasi - UPPCB",23.0,,3.0,12.0,85.0,62.0,30.0
+Vatva,"Phase-4 GIDC, Vatva - GPCB",13.0,2.0,32.0,41.0,125.0,126.0,33.0
+Vijayapura,"Ibrahimpur, Vijayapura - KSPCB",24.0,4.0,11.0,16.0,39.0,30.0,3.0
+Vijayawada,"HB Colony, Vijayawada - APPCB",31.0,5.0,14.0,47.0,73.0,81.0,11.0
+Vijayawada,"Kanuru, Vijayawada - APPCB",27.0,4.0,25.0,31.0,59.0,63.0,18.0
+Vijayawada,"Rajiv Gandhi Park, Vijayawada - APPCB",38.0,6.0,32.0,41.0,63.0,67.0,14.0
+Vijayawada,"Rajiv Nagar, Vijayawada - APPCB",24.0,5.0,17.0,33.0,62.0,67.0,10.0
+Virar,"Bolinj, Virar - MPCB",14.0,4.0,17.0,13.0,92.0,73.0,2.0
+Visakhapatnam,"GVM Corporation, Visakhapatnam - APPCB",14.0,4.0,59.0,63.0,125.0,67.0,23.0
+Vrindavan,"Omex Eternity, Vrindavan - UPPCB",22.0,8.0,27.0,15.0,73.0,30.0,29.0
+Yamuna Nagar,"Gobind Pura, Yamuna Nagar - HSPCB",50.0,4.0,16.0,65.0,125.0,78.0,12.0
