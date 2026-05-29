@@ -523,13 +523,13 @@ const genForecast = (city, wx) => {
 };
 
 // Design tokens
-const BG = "#f4f8fb";
-const CARD = "#ffffff";
-const BORD = "#dbe7f3";
-const MUT = "#64748b";
-const DIM = "#94a3b8";
-const TXT = "#0f172a";
-const ACC = "#0ea5e9";
+const BG = "var(--bg)";
+const CARD = "var(--card)";
+const BORD = "var(--border)";
+const MUT = "var(--muted)";
+const DIM = "var(--dim)";
+const TXT = "var(--text)";
+const ACC = "var(--accent)";
 
 function useIsMobile(breakpoint = 768) {
   const getMobile = () =>
@@ -558,6 +558,23 @@ function getDistanceKm(lat1, lon1, lat2, lon2) {
       Math.sin(dLon / 2) ** 2;
 
   return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+}
+
+function formatTemp(celsius, unit = "celsius") {
+  if (unit === "fahrenheit") {
+    return `${Math.round((Number(celsius) * 9) / 5 + 32)}°F`;
+  }
+  return `${Math.round(Number(celsius))}°C`;
+}
+
+function getEffectiveTheme(mode = "light") {
+  if (mode === "auto") {
+    if (typeof window !== "undefined" && window.matchMedia) {
+      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    }
+    return "light";
+  }
+  return mode;
 }
 
 // Reusable UI components
@@ -625,7 +642,7 @@ function PollBar({ label, value, unit, safe, color }) {
   );
 }
 
-function ForecastCard({ d }) {
+function ForecastCard({ d, settings }) {
   const TI = d.trend === "up" ? TrendingUp : d.trend === "down" ? TrendingDown : Minus;
   const WI = d.icon === "rain" ? CloudRain : d.icon === "cloudy" ? Cloud : Sun;
   const tc = d.trend === "up" ? "#ef4444" : d.trend === "down" ? "#22c55e" : MUT;
@@ -644,7 +661,7 @@ function ForecastCard({ d }) {
       <div style={{ fontSize: 30, fontWeight: 900, color: d.cat.color, fontFamily: "monospace", lineHeight: 1 }}>{d.aqi}</div>
       <div style={{ fontSize: 9, color: d.cat.color, fontWeight: 700, marginTop: 3, marginBottom: 10 }}>{d.cat.label}</div>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}>
-        <TI size={11} color={tc} /><span style={{ fontSize: 10, color: MUT }}>{d.temp}°C</span>
+        <TI size={11} color={tc} /><span style={{ fontSize: 10, color: MUT }}>{formatTemp(d.temp, settings?.temperatureUnit)}</span>
       </div>
       <div style={{ fontSize: 9, color: DIM, marginTop: 5 }}>{d.conf}% conf</div>
     </div>
@@ -672,10 +689,48 @@ function StatCard({ Icon, label, value, unit, color = ACC, sm }) {
 }
 
 // Application pages
-function Dashboard({ city, hist, wx, fc, wxLoading, mlLoading, nearestDistance }) {
+function Dashboard({ city, hist, wx, fc, wxLoading, mlLoading, nearestDistance, settings }) {
   const mobile = useIsMobile();
   const tablet = useIsMobile(1100);
   const aqi = getAQIValue(city); const cat = getCat(aqi); const hlth = getHealth(aqi);
+
+  if (settings?.aqiDisplayMode === "simple") {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <div style={{ background: CARD, border: `1px solid ${cat.color}2a`, borderRadius: 22, padding: mobile ? "20px 16px" : "26px 24px", display: "grid", gridTemplateColumns: mobile ? "1fr" : "260px 1fr", gap: 18, alignItems: "center", boxShadow: `0 0 50px ${cat.color}09` }}>
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: 10, color: MUT, fontWeight: 800, letterSpacing: "0.13em", marginBottom: 8 }}>SIMPLE AQI VIEW</div>
+            <AQIGauge aqi={aqi} color={cat.color} mobile={mobile} />
+            <div style={{ display: "inline-flex", padding: "5px 18px", borderRadius: 20, background: `${cat.color}18`, border: `1px solid ${cat.color}30`, marginTop: 8 }}>
+              <span style={{ color: cat.color, fontSize: 14, fontWeight: 900 }}>{cat.label}</span>
+            </div>
+          </div>
+          <div>
+            <div style={{ fontSize: mobile ? 18 : 22, fontWeight: 900, color: TXT, marginBottom: 6 }}>{city.name}</div>
+            <div style={{ color: MUT, fontSize: 12, lineHeight: 1.6, marginBottom: 10 }}>{city.location || `${city.city}, ${city.state}`}</div>
+            {nearestDistance !== null && nearestDistance !== undefined && (
+              <div style={{ color: ACC, fontSize: 12, fontWeight: 800, marginBottom: 12 }}>📍 Nearest station · {nearestDistance} km away</div>
+            )}
+            <p style={{ color: MUT, fontSize: 13, lineHeight: 1.7, margin: "0 0 14px" }}>{hlth.gen}</p>
+            <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "repeat(3,1fr)", gap: 10 }}>
+              {["PM25", "PM10", "NO2"].map(k => (
+                <div key={k} style={{ background: BG, border: "1px solid #dbe7f3", borderRadius: 14, padding: "13px 14px" }}>
+                  <div style={{ fontSize: 10, color: MUT, fontWeight: 800 }}>{PMETA[k].label}</div>
+                  <div style={{ fontSize: 20, color: PMETA[k].color, fontWeight: 900, fontFamily: "monospace", marginTop: 3 }}>{city.p[k] || 0}</div>
+                  <div style={{ fontSize: 9, color: DIM }}>{PMETA[k].unit}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: mobile ? "1fr" : "repeat(2,1fr)", gap: 10 }}>
+              <StatCard Icon={Thermometer} label="Temp" value={formatTemp(wx.temp, settings?.temperatureUnit).replace(/[°CF]/g, "")} unit={settings?.temperatureUnit === "fahrenheit" ? "°F" : "°C"} color="#fb923c" sm />
+              <StatCard Icon={Wind} label="Wind" value={wx.windSpeed} unit="km/h" color="#34d399" sm />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
 
@@ -746,7 +801,7 @@ function Dashboard({ city, hist, wx, fc, wxLoading, mlLoading, nearestDistance }
               <WeatherSkeleton />
             ) : (
               <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "repeat(2,minmax(0,1fr))", gap: 9 }}>
-                <StatCard Icon={Thermometer} label="Temp" value={wx.temp} unit="°C" color="#fb923c" sm />
+                <StatCard Icon={Thermometer} label="Temp" value={formatTemp(wx.temp, settings?.temperatureUnit).replace(/[°CF]/g, "")} unit={settings?.temperatureUnit === "fahrenheit" ? "°F" : "°C"} color="#fb923c" sm />
                 <StatCard Icon={Droplets} label="Humidity" value={wx.humidity} unit="%" color={ACC} sm />
                 <StatCard Icon={Wind} label="Wind" value={wx.windSpeed} unit="km/h" color="#34d399" sm />
                 <StatCard Icon={Eye} label="Visibility" value={wx.visibility} unit="km" color="#818cf8" sm />
@@ -778,6 +833,7 @@ function Dashboard({ city, hist, wx, fc, wxLoading, mlLoading, nearestDistance }
       </div>
 
       {/* Forecast */}
+      {settings?.showForecast !== false && (
       <div style={{ background: CARD, border: `1px solid ${BORD}`, borderRadius: 20, padding: "22px 20px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
           <div>
@@ -794,11 +850,13 @@ function Dashboard({ city, hist, wx, fc, wxLoading, mlLoading, nearestDistance }
           </div>
         </div>
         <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 8, WebkitOverflowScrolling: "touch" }}>
-          {fc.map((d, i) => <ForecastCard key={i} d={d} />)}
+          {fc.map((d, i) => <ForecastCard key={i} d={d} settings={settings} />)}
         </div>
       </div>
+      )}
 
       {/* 30-day trend */}
+      {settings?.showAnalytics !== false && (
       <div style={{ background: CARD, border: `1px solid ${BORD}`, borderRadius: 20, padding: "22px 20px" }}>
         <div style={{ fontSize: 10, color: MUT, fontWeight: 700, letterSpacing: "0.13em", marginBottom: 16 }}>30-DAY AQI TREND</div>
         <ResponsiveContainer width="100%" height={196}>
@@ -817,6 +875,7 @@ function Dashboard({ city, hist, wx, fc, wxLoading, mlLoading, nearestDistance }
           </AreaChart>
         </ResponsiveContainer>
       </div>
+      )}
 
       {/* Health */}
       <div style={{ background: CARD, border: `1px solid ${BORD}`, borderRadius: 20, padding: "22px 20px" }}>
@@ -949,7 +1008,7 @@ function MapFlyToSelected({ city }) {
   return null;
 }
 
-function MapView({ cities, sel, onSel }) {
+function MapView({ cities, sel, onSel, settings }) {
   const mobile = useIsMobile();
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -985,9 +1044,9 @@ function MapView({ cities, sel, onSel }) {
 
                 return (
                   <CircleMarker
-                    key={c.id}
+                    key={`${c.id}-${settings?.mapMarkerStyle || "aqi"}`}
                     center={[Number(c.lat), Number(c.lon)]}
-                    radius={selected ? 12 : Math.max(5, Math.min(10, aqi / 45))}
+                    radius={settings?.mapMarkerStyle === "fixed" ? (selected ? 12 : 7) : (selected ? 18 : Math.max(5, Math.min(18, aqi / 28)))}
                     pathOptions={{
                       color: cat.color,
                       fillColor: cat.color,
@@ -1139,90 +1198,151 @@ function SettingSelect({ label, value, onChange, options }) {
   );
 }
 
-function SettingsPage({ meta, city, cities }) {
+function SettingSegment({ label, desc, value, onChange, options }) {
+  return (
+    <div style={{ background: BG, border: "1px solid #dbe7f3", borderRadius: 16, padding: "16px 16px" }}>
+      <div style={{ color: TXT, fontSize: 13, fontWeight: 900 }}>{label}</div>
+      {desc && <div style={{ color: MUT, fontSize: 11, marginTop: 4, lineHeight: 1.45 }}>{desc}</div>}
+      <div style={{ display: "flex", gap: 8, marginTop: 13, flexWrap: "wrap" }}>
+        {options.map(opt => {
+          const active = value === opt.value;
+          return (
+            <button
+              key={opt.value}
+              onClick={() => onChange(opt.value)}
+              style={{
+                border: `1px solid ${active ? ACC : "#dbe7f3"}`,
+                background: active ? `${ACC}18` : CARD,
+                color: active ? ACC : TXT,
+                borderRadius: 999,
+                padding: "8px 12px",
+                fontSize: 11,
+                fontWeight: 900,
+                cursor: "pointer",
+              }}
+            >
+              {opt.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function SettingsPage({ meta, city, cities, settings, setSettings, applyStartupPreference }) {
   const mobile = useIsMobile();
   const tablet = useIsMobile(1100);
-  const [compactMode, setCompactMode] = useState(false);
-  const [animations, setAnimations] = useState(true);
-  const [showStationNames, setShowStationNames] = useState(true);
-  const [autoFly, setAutoFly] = useState(true);
-  const [clusterStations, setClusterStations] = useState(false);
-  const [heatmapLayer, setHeatmapLayer] = useState(true);
-  const [fillPM, setFillPM] = useState(true);
-  const [weatherInputs, setWeatherInputs] = useState(true);
-  const [showConfidence, setShowConfidence] = useState(true);
-  const [autoRefresh, setAutoRefresh] = useState(false);
-  const [refreshWeather, setRefreshWeather] = useState(true);
-  const [showLastUpdated, setShowLastUpdated] = useState(true);
-  const [temperatureUnit, setTemperatureUnit] = useState("celsius");
-  const [refreshInterval, setRefreshInterval] = useState("5min");
-  const [predictionHorizon, setPredictionHorizon] = useState("7day");
-  const [defaultZoom, setDefaultZoom] = useState(5);
   const loadedStations = meta?.totalStations || cities.length;
 
+  const updateSetting = (key, value) => {
+    setSettings(prev => ({ ...prev, [key]: value }));
+  };
+
   const Section = ({ title, sub, children }) => (
-    <div style={{ background: CARD, border: `1px solid ${BORD}`, borderRadius: 20, padding: "22px 20px" }}>
-      <div style={{ fontSize: 10, color: MUT, fontWeight: 800, letterSpacing: "0.13em", marginBottom: 4 }}>{title}</div>
-      {sub && <div style={{ fontSize: 11, color: DIM, marginBottom: 16 }}>{sub}</div>}
+    <div style={{ background: CARD, border: `1px solid ${BORD}`, borderRadius: 20, padding: mobile ? "18px 16px" : "22px 20px" }}>
+      <div style={{ fontSize: 10, color: MUT, fontWeight: 900, letterSpacing: "0.13em", marginBottom: 4 }}>{title}</div>
+      {sub && <div style={{ fontSize: 11, color: DIM, marginBottom: 16, lineHeight: 1.55 }}>{sub}</div>}
       <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "repeat(2,minmax(0,1fr))", gap: 12 }}>{children}</div>
     </div>
   );
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-      <Section title="DISPLAY SETTINGS" sub="Control the dashboard layout and visual behaviour.">
-        <SettingToggle label="Compact Mode" desc="Reduce card padding and spacing for dense project demos." value={compactMode} onChange={setCompactMode} />
-        <SettingToggle label="Enable Animations" desc="Keep smooth transitions, map movement, and pulse effects active." value={animations} onChange={setAnimations} />
-        <SettingToggle label="Show Station Names" desc="Display full station names wherever space allows." value={showStationNames} onChange={setShowStationNames} />
-        <SettingSelect label="Temperature Unit" value={temperatureUnit} onChange={setTemperatureUnit} options={[{ value: "celsius", label: "Celsius °C" }, { value: "fahrenheit", label: "Fahrenheit °F" }]} />
+      <Section title="DISPLAY CONTROLS" sub="These settings directly change what appears on the dashboard and how the app behaves.">
+        <SettingSegment
+          label="Theme Mode"
+          desc="Change the overall app background and visual tone."
+          value={settings.themeMode}
+          onChange={v => updateSetting("themeMode", v)}
+          options={[{ value: "light", label: "Light" }, { value: "dark", label: "Dark" }, { value: "auto", label: "Auto" }]}
+        />
+
+        <SettingSegment
+          label="AQI Display Mode"
+          desc="Simple mode hides extra dashboard sections and focuses on key AQI information."
+          value={settings.aqiDisplayMode}
+          onChange={v => updateSetting("aqiDisplayMode", v)}
+          options={[{ value: "detailed", label: "Detailed" }, { value: "simple", label: "Simple" }]}
+        />
+
+        <SettingToggle
+          label="Show Forecast"
+          desc="Show or hide the 7-day AQI forecast section on the dashboard."
+          value={settings.showForecast}
+          onChange={v => updateSetting("showForecast", v)}
+        />
+
+        <SettingToggle
+          label="Show Trend Analytics"
+          desc="Show or hide the 30-day AQI trend chart on the dashboard."
+          value={settings.showAnalytics}
+          onChange={v => updateSetting("showAnalytics", v)}
+        />
       </Section>
 
-      <Section title="MAP SETTINGS" sub="Settings for the embedded India station map.">
-        <SettingToggle label="Auto-Fly To Selected Station" desc="Move the map automatically when a station is selected." value={autoFly} onChange={setAutoFly} />
-        <SettingToggle label="Heatmap Layer" desc="Show pollution intensity visually over station locations." value={heatmapLayer} onChange={setHeatmapLayer} />
-        <SettingToggle label="Cluster Stations" desc="Group nearby station markers when zoomed out." value={clusterStations} onChange={setClusterStations} />
-        <div style={{ background: BG, border: "1px solid #dbe7f3", borderRadius: 14, padding: "14px 16px" }}>
-          <div style={{ color: TXT, fontSize: 13, fontWeight: 800 }}>Default Zoom Level</div>
-          <input type="range" min="4" max="12" value={defaultZoom} onChange={e => setDefaultZoom(Number(e.target.value))} style={{ width: "100%", marginTop: 12, accentColor: ACC }} />
-          <div style={{ color: ACC, fontSize: 12, fontWeight: 800, marginTop: 4 }}>Zoom {defaultZoom}</div>
+      <Section title="MAP & LOCATION" sub="Control how locations and map markers are shown.">
+        <SettingSegment
+          label="Map Marker Style"
+          desc="AQI size makes polluted stations visually larger. Fixed size keeps all markers equal."
+          value={settings.mapMarkerStyle}
+          onChange={v => updateSetting("mapMarkerStyle", v)}
+          options={[{ value: "aqi", label: "AQI Size" }, { value: "fixed", label: "Fixed Size" }]}
+        />
+
+        <div style={{ background: BG, border: "1px solid #dbe7f3", borderRadius: 16, padding: "16px 16px" }}>
+          <SettingSegment
+            label="Startup Location"
+            desc="Choose whether the app should start from your nearest station or the highest AQI station."
+            value={settings.startupPreference}
+            onChange={v => updateSetting("startupPreference", v)}
+            options={[{ value: "nearest", label: "Nearest Station" }, { value: "highest", label: "Highest AQI" }]}
+          />
+          <button
+            onClick={applyStartupPreference}
+            style={{
+              marginTop: 12,
+              width: "100%",
+              border: "none",
+              borderRadius: 12,
+              background: ACC,
+              color: "white",
+              padding: "10px 12px",
+              fontWeight: 900,
+              cursor: "pointer",
+            }}
+          >
+            Apply Startup Preference Now
+          </button>
+        </div>
+
+        <SettingSegment
+          label="Weather Unit"
+          desc="Switch all temperature values between Celsius and Fahrenheit."
+          value={settings.temperatureUnit}
+          onChange={v => updateSetting("temperatureUnit", v)}
+          options={[{ value: "celsius", label: "Celsius °C" }, { value: "fahrenheit", label: "Fahrenheit °F" }]}
+        />
+
+        <div style={{ background: BG, border: "1px solid #dbe7f3", borderRadius: 16, padding: "16px 16px" }}>
+          <div style={{ color: TXT, fontSize: 13, fontWeight: 900 }}>Current Selection</div>
+          <div style={{ color: MUT, fontSize: 11, marginTop: 5, lineHeight: 1.55 }}>{city?.station || city?.name}</div>
+          <div style={{ color: ACC, fontSize: 12, fontWeight: 900, marginTop: 8 }}>AQI {getAQIValue(city)} · {getCat(getAQIValue(city)).label}</div>
         </div>
       </Section>
 
-      <Section title="ML / PREDICTION SETTINGS" sub="Configure how the prediction layer behaves.">
-        <SettingSelect label="Prediction Horizon" value={predictionHorizon} onChange={setPredictionHorizon} options={[{ value: "current", label: "Current Only" }, { value: "24h", label: "Next 24 Hours" }, { value: "3day", label: "Next 3 Days" }, { value: "7day", label: "Next 7 Days" }]} />
-        <SettingToggle label="Use Weather Inputs" desc="Use Open-Meteo weather fields for forecast generation." value={weatherInputs} onChange={setWeatherInputs} />
-        <SettingToggle label="Fill Missing PM Values" desc="Use Flask Random Forest models when PM2.5 or PM10 is missing." value={fillPM} onChange={setFillPM} />
-        <SettingToggle label="Show Confidence %" desc="Display forecast confidence on prediction cards." value={showConfidence} onChange={setShowConfidence} />
-      </Section>
-
-      <Section title="DATA SETTINGS" sub="AirWatch now uses live APIs only. CSV upload has been removed.">
-        <div style={{ background: BG, border: "1px solid #dbe7f3", borderRadius: 14, padding: "14px 16px" }}>
-          <div style={{ color: TXT, fontSize: 13, fontWeight: 800 }}>Data Source</div>
-          <div style={{ color: ACC, fontSize: 12, fontWeight: 800, marginTop: 8 }}>● CPCB Live API / data.gov.in</div>
-          <div style={{ color: MUT, fontSize: 11, marginTop: 5 }}>No CSV upload or hardcoded city fallback is used.</div>
-        </div>
-        <SettingSelect label="Refresh Interval" value={refreshInterval} onChange={setRefreshInterval} options={[{ value: "30s", label: "30 seconds" }, { value: "1min", label: "1 minute" }, { value: "5min", label: "5 minutes" }, { value: "15min", label: "15 minutes" }]} />
-        <SettingToggle label="Auto Refresh Data" desc="Automatically reload CPCB station data at the selected interval." value={autoRefresh} onChange={setAutoRefresh} />
-        <SettingToggle label="Refresh Weather Automatically" desc="Update weather when selected station changes." value={refreshWeather} onChange={setRefreshWeather} />
-        <SettingToggle label="Show Last Updated Time" desc="Show CPCB/data.gov.in update timestamp in the top bar." value={showLastUpdated} onChange={setShowLastUpdated} />
-        <div style={{ background: BG, border: "1px solid #dbe7f3", borderRadius: 14, padding: "14px 16px", display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
-          <button onClick={() => window.location.reload()} style={{ background: ACC, color: BG, border: "none", borderRadius: 10, padding: "9px 14px", fontWeight: 900, cursor: "pointer" }}>Refresh Now</button>
-          <button onClick={() => localStorage.clear()} style={{ background: "transparent", color: "#94a3b8", border: "1px solid #94a3b8", borderRadius: 10, padding: "9px 14px", fontWeight: 800, cursor: "pointer" }}>Clear Cache</button>
-        </div>
-      </Section>
-
-      <div style={{ background: CARD, border: `1px solid ${BORD}`, borderRadius: 20, padding: "22px 20px" }}>
-        <div style={{ fontSize: 10, color: MUT, fontWeight: 800, letterSpacing: "0.13em", marginBottom: 16 }}>ABOUT AIRWATCH</div>
+      <div style={{ background: CARD, border: `1px solid ${BORD}`, borderRadius: 20, padding: mobile ? "18px 16px" : "22px 20px" }}>
+        <div style={{ fontSize: 10, color: MUT, fontWeight: 900, letterSpacing: "0.13em", marginBottom: 16 }}>ABOUT AIRWATCH</div>
         <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : tablet ? "repeat(2,minmax(0,1fr))" : "repeat(4,1fr)", gap: mobile ? 10 : 12 }}>
           {[
             ["Stations Loaded", loadedStations],
             ["Current Station", city?.station || city?.name],
-            ["Backend", "Flask + Random Forest"],
-            ["Weather", "Open-Meteo"],
+            ["Display Mode", settings.aqiDisplayMode === "simple" ? "Simple AQI" : "Detailed Dashboard"],
+            ["Map Style", settings.mapMarkerStyle === "fixed" ? "Fixed Markers" : "AQI Sized Markers"],
           ].map(([label, value]) => (
             <div key={label} style={{ background: BG, border: "1px solid #dbe7f3", borderRadius: 14, padding: "14px 16px" }}>
-              <div style={{ color: MUT, fontSize: 10, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase" }}>{label}</div>
-              <div style={{ color: TXT, fontSize: mobile ? 13 : 14, fontWeight: 800, marginTop: 6, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: mobile ? "normal" : "nowrap", wordBreak: "break-word", lineHeight: 1.35 }}>{value}</div>
+              <div style={{ color: MUT, fontSize: 10, fontWeight: 900, letterSpacing: "0.08em", textTransform: "uppercase" }}>{label}</div>
+              <div style={{ color: TXT, fontSize: mobile ? 13 : 14, fontWeight: 900, marginTop: 6, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: mobile ? "normal" : "nowrap", wordBreak: "break-word", lineHeight: 1.35 }}>{value}</div>
             </div>
           ))}
         </div>
@@ -1551,7 +1671,7 @@ function AppLoadingSkeleton() {
         display: "flex",
         flexDirection: mobile ? "column" : "row",
         height: "100vh",
-        background: "linear-gradient(135deg, #f8fbff 0%, #eef6ff 45%, #f4f8fb 100%)",
+        background: "#eef5fb",
         fontFamily: "Outfit,sans-serif",
         overflow: "hidden",
       }}>
@@ -1709,6 +1829,28 @@ export default function App() {
   const [userLocation, setUserLocation] = useState(null);
   const [nearestDistance, setNearestDistance] = useState(null);
   const locationRequestedRef = useRef(false);
+  const DEFAULT_SETTINGS = {
+    themeMode: "light",
+    aqiDisplayMode: "detailed",
+    mapMarkerStyle: "aqi",
+    showForecast: true,
+    showAnalytics: true,
+    temperatureUnit: "celsius",
+    startupPreference: "nearest",
+  };
+
+  const [settings, setSettings] = useState(() => {
+    try {
+      const saved = localStorage.getItem("airwatch_settings_v2");
+      return saved ? { ...DEFAULT_SETTINGS, ...JSON.parse(saved) } : DEFAULT_SETTINGS;
+    } catch {
+      return DEFAULT_SETTINGS;
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem("airwatch_settings_v2", JSON.stringify(settings));
+  }, [settings]);
 
   const activeCities = cpcbCities;
 
@@ -1759,6 +1901,7 @@ export default function App() {
 
   useEffect(() => {
     if (!cpcbCities.length) return;
+    if (settings.startupPreference !== "nearest") return;
     if (locationRequestedRef.current) return;
     if (!navigator.geolocation) return;
 
@@ -1813,7 +1956,7 @@ export default function App() {
         maximumAge: 60000,
       }
     );
-  }, [cpcbCities]);
+  }, [cpcbCities, settings.startupPreference]);
 
   useEffect(() => {
     if (!activeCity) return;
@@ -1890,6 +2033,48 @@ export default function App() {
     fillSelectedStationPM();
   }, [activeCity?.id]);
 
+  function applyStartupPreference() {
+    if (!activeCities.length) return;
+
+    if (settings.startupPreference === "highest") {
+      const highest = [...activeCities].sort((a, b) => getAQIValue(b) - getAQIValue(a))[0];
+      if (highest) {
+        setCity(highest);
+        setNearestDistance(null);
+        setPg("dashboard");
+      }
+      return;
+    }
+
+    locationRequestedRef.current = false;
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        const userLat = position.coords.latitude;
+        const userLon = position.coords.longitude;
+        let nearestStation = null;
+        let nearestKm = Infinity;
+
+        activeCities.forEach(station => {
+          const distance = getDistanceKm(userLat, userLon, Number(station.lat), Number(station.lon));
+          if (Number.isFinite(distance) && distance < nearestKm) {
+            nearestKm = distance;
+            nearestStation = station;
+          }
+        });
+
+        if (nearestStation) {
+          setUserLocation({ lat: userLat, lon: userLon });
+          setCity(nearestStation);
+          setNearestDistance(Math.round(nearestKm * 10) / 10);
+          setPg("dashboard");
+        }
+      },
+      () => {},
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+    );
+  }
+
   useEffect(() => {
     const lk = document.createElement("link");
     lk.href = "https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap";
@@ -1897,7 +2082,7 @@ export default function App() {
     document.head.appendChild(lk);
 
     const st = document.createElement("style");
-    st.textContent = `*{box-sizing:border-box;}body{margin:0;padding:0;background:#f4f8fb;font-family:Outfit,sans-serif;}::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:2px}@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}`;
+    st.textContent = `*{box-sizing:border-box;}body{margin:0;padding:0;background:#0f172a;font-family:Outfit,sans-serif;}::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:2px}@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}`;
     document.head.appendChild(st);
 
     return () => {
@@ -1940,6 +2125,30 @@ export default function App() {
   const fc = genForecast(activeCity, wx || genWeatherFallback(activeCity.lat));
   const aqi = getAQIValue(activeCity);
   const cat = getCat(aqi);
+  const effectiveTheme = getEffectiveTheme(settings.themeMode);
+  const appBackground = effectiveTheme === "dark"
+    ? "linear-gradient(135deg, #07111f 0%, #0f172a 45%, #111827 100%)"
+    : "linear-gradient(135deg, #f8fbff 0%, #eef6ff 45%, #f4f8fb 100%)";
+
+  const themeVars = effectiveTheme === "dark"
+    ? {
+        "--bg": "#0f172a",
+        "--card": "#111827",
+        "--border": "#243244",
+        "--muted": "#94a3b8",
+        "--dim": "#64748b",
+        "--text": "#e5eefb",
+        "--accent": "#38bdf8",
+      }
+    : {
+        "--bg": "#f4f8fb",
+        "--card": "#ffffff",
+        "--border": "#dbe7f3",
+        "--muted": "#64748b",
+        "--dim": "#94a3b8",
+        "--text": "#0f172a",
+        "--accent": "#0ea5e9",
+      };
 
   const META = {
     dashboard: { title: "Dashboard", sub: `Live CPCB/data.gov.in station data · ${activeCity.name}, ${activeCity.state}` },
@@ -1950,7 +2159,7 @@ export default function App() {
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: mobile ? "column" : "row", height: "100vh", background: "linear-gradient(135deg, #f8fbff 0%, #eef6ff 45%, #f4f8fb 100%)", fontFamily: "Outfit,sans-serif", overflow: "hidden" }}>
+    <div style={{ ...themeVars, display: "flex", flexDirection: mobile ? "column" : "row", height: "100vh", background: appBackground, color: TXT, fontFamily: "Outfit,sans-serif", overflow: "hidden" }}>
       <Sidebar pg={pg} set={setPg} />
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
         <TopBar city={activeCity} setCity={setCity} cities={activeCities} meta={cpcbMeta} />
@@ -1959,11 +2168,11 @@ export default function App() {
             <h1 style={{ margin: 0, fontSize: 22, fontWeight: 900, color: TXT, fontFamily: "Outfit,sans-serif" }}>{META[pg].title}</h1>
             <p style={{ margin: "4px 0 0", fontSize: 12, color: MUT }}>{META[pg].sub}</p>
           </div>
-          {pg === "dashboard" && <Dashboard city={activeCity} hist={hist} fc={fc} wx={wx || genWeatherFallback(activeCity.lat)} wxLoading={wxLoading} mlLoading={mlLoading} nearestDistance={nearestDistance} />}
-          {pg === "analytics" && <Analytics city={activeCity} hist={hist} />}
-          {pg === "map" && <MapView cities={activeCities} sel={activeCity} onSel={setCity} />}
+          {pg === "dashboard" && <Dashboard city={activeCity} hist={hist} fc={fc} wx={wx || genWeatherFallback(activeCity.lat)} wxLoading={wxLoading} mlLoading={mlLoading} nearestDistance={nearestDistance} settings={settings} />}
+          {pg === "analytics" && (settings.showAnalytics ? <Analytics city={activeCity} hist={hist} /> : <div style={{ background: CARD, border: `1px solid ${BORD}`, borderRadius: 20, padding: 24, color: MUT }}>Trend analytics are hidden from Settings. Turn on “Show Trend Analytics” to view charts.</div>)}
+          {pg === "map" && <MapView cities={activeCities} sel={activeCity} onSel={setCity} settings={settings} />}
           {pg === "health" && <Health city={activeCity} fc={fc} />}
-          {pg === "settings" && <SettingsPage meta={cpcbMeta} city={activeCity} cities={activeCities} />}
+          {pg === "settings" && <SettingsPage meta={cpcbMeta} city={activeCity} cities={activeCities} settings={settings} setSettings={setSettings} applyStartupPreference={applyStartupPreference} />}
         </div>
       </div>
     </div>
