@@ -394,12 +394,10 @@ async function fetchWeather(lat, lon) {
 }
 
 // CPCB/data.gov.in live API integration.
-const DATA_GOV_RESOURCE_URL = "https://api.data.gov.in/resource/3b01bcb8-0b14-4abf-b6f2-c1bfd384ba69";
-
-// Put your real key in .env as:
-// VITE_DATA_GOV_API_KEY=your_key_here
-// For quick testing, you can temporarily replace the fallback string below.
-const DATA_GOV_API_KEY = import.meta.env.VITE_DATA_GOV_API_KEY || "YOUR_DATA_GOV_API_KEY";
+// The browser calls our backend/proxy so the API key stays server-side
+// and data.gov.in CORS/upstream failures can be reported clearly.
+const ML_API_URL = import.meta.env.VITE_ML_API_URL;
+const CPCB_API_URL = import.meta.env.VITE_CPCB_API_URL || (ML_API_URL ? `${ML_API_URL}/cpcb-records` : "/api/cpcb-records");
 
 async function fetchCPCBRecords() {
   const all = [];
@@ -409,18 +407,17 @@ async function fetchCPCBRecords() {
 
   while (offset < total) {
     const params = new URLSearchParams({
-      "api-key": DATA_GOV_API_KEY,
       format: "json",
       limit: String(limit),
       offset: String(offset),
     });
 
-    const url = `${DATA_GOV_RESOURCE_URL}?${params.toString()}`;
+    const url = `${CPCB_API_URL}?${params.toString()}`;
     const res = await fetch(url);
 
     if (!res.ok) {
       const text = await res.text().catch(() => "");
-      throw new Error(`data.gov.in API failed: ${res.status} ${text}`);
+      throw new Error(`CPCB API proxy failed: ${res.status} ${text}`);
     }
 
     const json = await res.json();
@@ -450,10 +447,6 @@ async function fetchCPCBRecords() {
 }
 
 async function fetchCPCBCities() {
-  if (!DATA_GOV_API_KEY || DATA_GOV_API_KEY === "YOUR_DATA_GOV_API_KEY") {
-    throw new Error("Add your data.gov.in API key in .env as VITE_DATA_GOV_API_KEY");
-  }
-
   const rows = await fetchCPCBRecords();
   const { cities, meta } = await csvToCities(rows);
 
@@ -2112,9 +2105,9 @@ export default function App() {
             {cpcbError || "No usable city data was returned from CPCB/data.gov.in."}
           </pre>
           <div style={{ color: MUT, fontSize: 12, lineHeight: 1.7, marginTop: 14 }}>
-            Check that your <code style={{ color: ACC }}>.env</code> file exists in the project root and contains:<br />
-            <code style={{ color: ACC }}>VITE_DATA_GOV_API_KEY=your_actual_api_key</code><br />
-            Then stop and restart the dev server with <code style={{ color: ACC }}>npm run dev</code>.
+            Check that the server environment contains:<br />
+            <code style={{ color: ACC }}>DATA_GOV_API_KEY=your_actual_api_key</code><br />
+            Then redeploy Vercel or restart the dev server.
           </div>
         </div>
       </div>

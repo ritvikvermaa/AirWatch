@@ -83,7 +83,8 @@ npm install leaflet react-leaflet
 Create a `.env` file in the frontend root:
 
 ```env
-VITE_DATA_GOV_API_KEY=your_data_gov_api_key_here
+DATA_GOV_API_KEY=your_data_gov_api_key_here
+VITE_ML_API_URL=http://127.0.0.1:5000
 ```
 
 Run the frontend:
@@ -159,7 +160,8 @@ POST http://127.0.0.1:5000/predict-pm
 Create `.env` in the frontend root:
 
 ```env
-VITE_DATA_GOV_API_KEY=your_data_gov_api_key_here
+DATA_GOV_API_KEY=your_data_gov_api_key_here
+VITE_ML_API_URL=http://127.0.0.1:5000
 ```
 
 Do not commit `.env` to GitHub.
@@ -251,15 +253,36 @@ git push
 
 ## Deployment Notes
 
-The React frontend can be deployed on Vercel or Netlify. The Flask backend should be deployed separately on a backend platform such as Render, Railway, or PythonAnywhere.
+The Flask backend can be deployed on Render. Add this Render Environment Variable:
 
-For deployment, update the frontend ML API URL from local:
-
-```js
-http://127.0.0.1:5000/predict-pm
+```env
+DATA_GOV_API_KEY=your_data_gov_api_key_here
 ```
 
-to your deployed backend URL.
+The React frontend can be deployed on Vercel. Set the frontend environment variable to your Render backend URL:
+
+```env
+VITE_ML_API_URL=https://your-render-service.onrender.com
+```
+
+The frontend uses `VITE_ML_API_URL` for both:
+
+```txt
+POST /predict-pm
+GET /cpcb-records
+```
+
+If you want CPCB traffic to use a different backend/proxy URL, also set:
+
+```env
+VITE_CPCB_API_URL=https://your-backend.example.com/cpcb-records
+```
+
+For local development, keep the frontend ML API URL as:
+
+```js
+http://127.0.0.1:5000
+```
 
 ## Important Notes
 
