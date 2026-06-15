@@ -4,6 +4,7 @@ import time
 import requests
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from werkzeug.exceptions import HTTPException
 import joblib
 import pandas as pd
 
@@ -13,6 +14,7 @@ DATA_GOV_HEADERS = {
     "Accept": "application/json",
     "User-Agent": "Mozilla/5.0 (compatible; AirWatch/1.0)",
 }
+MAX_CPCB_LIMIT = 100
 
 @app.route("/")
 def home():
@@ -22,6 +24,21 @@ def home():
         "endpoints": ["/predict-pm", "/cpcb-records"]
     }
 CORS(app)
+
+@app.errorhandler(Exception)
+def handle_unexpected_error(error):
+    if isinstance(error, HTTPException):
+        return jsonify({
+            "status": "error",
+            "message": error.description,
+        }), error.code
+
+    app.logger.exception("Unhandled backend error")
+    return jsonify({
+        "status": "error",
+        "message": "Internal backend error",
+        "details": str(error),
+    }), 500
 
 pm25_model = joblib.load("pm25_model.pkl")
 pm10_model = joblib.load("pm10_model.pkl")
@@ -58,22 +75,31 @@ def cpcb_records():
             "message": "DATA_GOV_API_KEY is not configured on the server"
         }), 500
 
+    try:
+        limit = min(max(int(request.args.get("limit", MAX_CPCB_LIMIT)), 1), MAX_CPCB_LIMIT)
+        offset = max(int(request.args.get("offset", 0)), 0)
+    except ValueError:
+        return jsonify({
+            "status": "error",
+            "message": "limit and offset must be numbers"
+        }), 400
+
     params = {
         "api-key": api_key,
         "format": "json",
-        "limit": request.args.get("limit", "100"),
-        "offset": request.args.get("offset", "0"),
+        "limit": str(limit),
+        "offset": str(offset),
     }
 
     upstream = None
     last_error = None
 
-    for attempt in range(3):
+    for attempt in range(2):
         try:
             upstream = requests.get(
                 DATA_GOV_RESOURCE_URL,
                 params=params,
-                timeout=25,
+                timeout=(5, 10),
                 headers=DATA_GOV_HEADERS,
             )
 
@@ -82,8 +108,8 @@ def cpcb_records():
         except requests.RequestException as err:
             last_error = err
 
-        if attempt < 2:
-            time.sleep(1.5 * (attempt + 1))
+        if attempt == 0:
+            time.sleep(1.5)
 
     if upstream is None:
         return jsonify({
@@ -102,11 +128,13 @@ def cpcb_records():
             except ValueError:
                 pass
 
+        status_code = 502 if upstream.status_code >= 500 else upstream.status_code
+
         return jsonify({
             "status": "error",
             "message": f"data.gov.in API failed: {upstream.status_code}",
             "details": details
-        }), upstream.status_code
+        }), status_code
 
     try:
         return jsonify(upstream.json())
