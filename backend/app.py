@@ -199,7 +199,7 @@ def cpcb_records():
             time.sleep(1.5)
 
     if upstream is None:
-        return fallback_cpcb_response(limit, offset, f"Could not reach data.gov.in API: {last_error}")
+        return fallback_cpcb_response(limit, offset, "Could not reach data.gov.in API")
 
     content_type = upstream.headers.get("content-type", "")
 
@@ -237,7 +237,7 @@ def fallback_cpcb_response(limit, offset, reason):
 
     return jsonify({
         "records": page,
-        "total": len(records),
+        "total": offset + len(page),
         "count": len(page),
         "offset": offset,
         "limit": limit,

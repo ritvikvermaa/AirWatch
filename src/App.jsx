@@ -433,6 +433,8 @@ async function fetchCPCBRecords() {
     const records = Array.isArray(json.records) ? json.records : [];
     all.push(...records);
 
+    if (json.fallback) break;
+
     const apiTotal = Number(json.total);
     total = Number.isFinite(apiTotal) && apiTotal > 0 ? apiTotal : all.length;
 
