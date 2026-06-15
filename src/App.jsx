@@ -401,7 +401,7 @@ const CPCB_API_URL = import.meta.env.VITE_CPCB_API_URL || (ML_API_URL ? `${ML_AP
 
 async function fetchCPCBRecords() {
   const all = [];
-  const limit = 1000;
+  const limit = 100;
   let offset = 0;
   let total = Infinity;
 

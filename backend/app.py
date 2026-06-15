@@ -1,4 +1,5 @@
 import os
+import time
 
 import requests
 from flask import Flask, request, jsonify
@@ -8,6 +9,10 @@ import pandas as pd
 
 app = Flask(__name__)
 DATA_GOV_RESOURCE_URL = "https://api.data.gov.in/resource/3b01bcb8-0b14-4abf-b6f2-c1bfd384ba69"
+DATA_GOV_HEADERS = {
+    "Accept": "application/json",
+    "User-Agent": "Mozilla/5.0 (compatible; AirWatch/1.0)",
+}
 
 @app.route("/")
 def home():
@@ -56,17 +61,35 @@ def cpcb_records():
     params = {
         "api-key": api_key,
         "format": "json",
-        "limit": request.args.get("limit", "1000"),
+        "limit": request.args.get("limit", "100"),
         "offset": request.args.get("offset", "0"),
     }
 
-    try:
-        upstream = requests.get(DATA_GOV_RESOURCE_URL, params=params, timeout=8)
-    except requests.RequestException as err:
+    upstream = None
+    last_error = None
+
+    for attempt in range(3):
+        try:
+            upstream = requests.get(
+                DATA_GOV_RESOURCE_URL,
+                params=params,
+                timeout=25,
+                headers=DATA_GOV_HEADERS,
+            )
+
+            if upstream.status_code not in (502, 503, 504):
+                break
+        except requests.RequestException as err:
+            last_error = err
+
+        if attempt < 2:
+            time.sleep(1.5 * (attempt + 1))
+
+    if upstream is None:
         return jsonify({
             "status": "error",
             "message": "Could not reach data.gov.in API",
-            "details": str(err)
+            "details": str(last_error)
         }), 502
 
     content_type = upstream.headers.get("content-type", "")
