@@ -504,6 +504,40 @@ function mergeStations(existing, incoming) {
   return [...byId.values()].sort((a, b) => getAQIValue(b) - getAQIValue(a));
 }
 
+async function fetchInitialCPCBCities(cityFilter = "") {
+  if (!cityFilter) {
+    const result = await fetchCPCBCities();
+    return {
+      ...result,
+      broadMeta: result.meta,
+    };
+  }
+
+  const [nearestResult, broadResult] = await Promise.allSettled([
+    fetchCPCBCities({ cityFilter }),
+    fetchCPCBCities(),
+  ]);
+
+  const successful = [nearestResult, broadResult]
+    .filter(result => result.status === "fulfilled")
+    .map(result => result.value);
+
+  if (!successful.length) {
+    throw nearestResult.reason || broadResult.reason || new Error("Could not load CPCB station data");
+  }
+
+  const nearestCities = nearestResult.status === "fulfilled" ? nearestResult.value.cities : [];
+  const broadCities = broadResult.status === "fulfilled" ? broadResult.value.cities : [];
+  const broadMeta = broadResult.status === "fulfilled" ? broadResult.value.meta : null;
+  const meta = broadMeta || successful[0].meta;
+
+  return {
+    cities: mergeStations(nearestCities, broadCities),
+    meta,
+    broadMeta,
+  };
+}
+
 function degToCompass(deg) {
   const dirs = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
   return dirs[Math.round(deg / 45) % 8];
@@ -2033,8 +2067,8 @@ export default function App() {
     setCpcbLoading(true);
     setCpcbError("");
 
-    fetchCPCBCities({ cityFilter: startupCityFilter })
-      .then(({ cities, meta }) => {
+    fetchInitialCPCBCities(startupCityFilter)
+      .then(({ cities, meta, broadMeta }) => {
         if (cancelled) return;
 
         if (!cities || cities.length === 0) {
@@ -2063,12 +2097,12 @@ export default function App() {
           );
         }
 
-        if (!meta.fallback) {
-          const backgroundOptions = startupCityFilter
-            ? { startOffset: 0, maxPages: 3, cityFilter: "" }
-            : Number.isFinite(meta.totalRecords) && meta.nextOffset < meta.totalRecords
-              ? { startOffset: meta.nextOffset, maxPages: 3 }
-              : null;
+        const backgroundMeta = broadMeta || meta;
+
+        if (!backgroundMeta.fallback) {
+          const backgroundOptions = Number.isFinite(backgroundMeta.totalRecords) && backgroundMeta.nextOffset < backgroundMeta.totalRecords
+            ? { startOffset: backgroundMeta.nextOffset, maxPages: 3, cityFilter: "" }
+            : null;
 
           if (!backgroundOptions) return;
 
