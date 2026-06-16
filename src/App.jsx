@@ -579,6 +579,19 @@ function mergeStations(existing, incoming) {
   return [...byId.values()].sort((a, b) => getAQIValue(b) - getAQIValue(a));
 }
 
+function stationMetaFromList(meta, stations) {
+  return {
+    ...(meta || {}),
+    cityCount: stations.length,
+    totalCities: stations.length,
+    totalStations: stations.length,
+  };
+}
+
+function wait(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 async function fetchInitialCPCBCities(cityFilter = "") {
   if (!cityFilter) {
     const result = await fetchCPCBCities();
@@ -1809,7 +1822,7 @@ function TopBar({ city, setCity, cities, meta }) {
             <div style={{ maxHeight: 320, overflowY: "auto", overflowX: "hidden" }}>
               {filtered.length === 0 ? (
                 <div style={{ padding: "12px", fontSize: 12, color: MUT, textAlign: "center" }}>
-                  No cities match "<span style={{ color: TXT }}>{query}</span>"
+                  No stations match "<span style={{ color: TXT }}>{query}</span>"
                 </div>
               ) : filtered.map(c => {
                 const a = getAQIValue(c); const ct = getCat(a);
@@ -1848,7 +1861,7 @@ function TopBar({ city, setCity, cities, meta }) {
             {/* Footer count */}
             <div style={{ borderTop: "1px solid var(--line)", marginTop: 6, paddingTop: 7, paddingLeft: 4 }}>
               <span style={{ fontSize: 9, color: DIM }}>
-                {filtered.length} of {cities.length} cities
+                {filtered.length} of {cities.length} stations
               </span>
             </div>
           </div>
@@ -1867,7 +1880,7 @@ function TopBar({ city, setCity, cities, meta }) {
 
       <div style={{ marginLeft: mobile ? 0 : "auto", display: mobile ? "none" : "flex", alignItems: "center", gap: 10 }}>
         <span style={{ fontSize: 10, color: DIM }}>
-          CPCB/data.gov.in · {cities.length} cities{meta?.totalStations ? ` · ${meta.totalStations} stations` : ""}
+          CPCB/data.gov.in · {meta?.totalStations || cities.length} stations
           {meta?.lastUpdate ? ` · ${meta.lastUpdate}` : ""}
         </span>
         <div style={{
@@ -2215,16 +2228,18 @@ export default function App() {
         if (cancelled) return;
 
         if (!cities || cities.length === 0) {
-          throw new Error("CPCB API returned 0 usable cities. Check API response fields: city, state, latitude, longitude, pollutant_id, avg_value.");
+          throw new Error("CPCB API returned 0 usable stations. Check API response fields: city, state, latitude, longitude, pollutant_id, avg_value.");
         }
 
-        console.log("CPCB loaded cities count:", cities.length);
-        console.log("First CPCB city:", cities[0]);
+        console.log("CPCB loaded stations count:", cities.length);
+        console.log("First CPCB station:", cities[0]);
         console.log("Delhi from CPCB:", cities.find(c => c.id === "delhi"));
+
+        const initialMeta = stationMetaFromList(meta, cities);
 
         setCpcbCities(cities);
         cpcbCitiesRef.current = cities;
-        setCpcbMeta(meta);
+        setCpcbMeta(initialMeta);
         if (settings.startupPreference === "nearest" && userLocationRef.current) {
           setNearestOrFallback(cities, userLocationRef.current);
           setStartupLocationLoading(false);
@@ -2240,7 +2255,7 @@ export default function App() {
           );
         }
 
-        const backgroundMeta = broadMeta || meta;
+        const backgroundMeta = broadMeta || initialMeta;
 
         if (!backgroundMeta.fallback) {
           const backgroundOptions = needsBroadLoad
@@ -2251,28 +2266,52 @@ export default function App() {
 
           if (!backgroundOptions) return;
 
-          fetchCPCBCities(backgroundOptions)
-            .then(({ cities: moreCities }) => {
-              if (cancelled || !moreCities?.length) return;
+          (async () => {
+            let nextOffset = backgroundOptions.startOffset;
+            let totalRecords = backgroundMeta.totalRecords;
 
-              setCpcbCities(prev => {
-                const merged = mergeStations(prev, moreCities);
-                cpcbCitiesRef.current = merged;
+            for (let page = 0; page < backgroundOptions.maxPages; page += 1) {
+              if (cancelled) return;
 
-                if (settings.startupPreference === "nearest" && userLocationRef.current) {
-                  const nearest = findNearestStation(merged, userLocationRef.current);
-                  if (isCloserStation(nearest.station, cityRef.current, userLocationRef.current)) {
-                    setCity(nearest.station);
-                    setNearestDistance(nearest.distance);
+              try {
+                const { cities: moreCities, meta: pageMeta } = await fetchCPCBCities({
+                  startOffset: nextOffset,
+                  maxPages: 1,
+                  cityFilter: backgroundOptions.cityFilter,
+                });
+
+                if (cancelled || !moreCities?.length) return;
+
+                setCpcbCities(prev => {
+                  const merged = mergeStations(prev, moreCities);
+                  cpcbCitiesRef.current = merged;
+                  setCpcbMeta(stationMetaFromList(pageMeta, merged));
+
+                  if (settings.startupPreference === "nearest" && userLocationRef.current) {
+                    const nearest = findNearestStation(merged, userLocationRef.current);
+                    if (isCloserStation(nearest.station, cityRef.current, userLocationRef.current)) {
+                      setCity(nearest.station);
+                      setNearestDistance(nearest.distance);
+                    }
                   }
+
+                  return merged;
+                });
+
+                nextOffset = pageMeta.nextOffset;
+                totalRecords = pageMeta.totalRecords;
+
+                if (!Number.isFinite(totalRecords) || nextOffset >= totalRecords || pageMeta.fallback) {
+                  return;
                 }
 
-                return merged;
-              });
-            })
-            .catch(err => {
-              console.log("Background CPCB station load skipped:", err.message);
-            });
+                await wait(600);
+              } catch (err) {
+                console.log("Background CPCB station load skipped:", err.message);
+                return;
+              }
+            }
+          })();
         }
       })
       .catch(err => {
@@ -2371,7 +2410,7 @@ export default function App() {
             <h2 style={{ margin: 0, fontSize: 22, color: "#fca5a5" }}>CPCB API data could not be loaded</h2>
           </div>
           <p style={{ color: MUT, fontSize: 14, lineHeight: 1.7, margin: "0 0 16px" }}>
-            The app has no hardcoded fallback cities now, so it will not show default Delhi/sample data. Fix the API issue below and refresh the page.
+            The app has no hardcoded fallback stations now, so it will not show default Delhi/sample data. Fix the API issue below and refresh the page.
           </p>
           <pre style={{ whiteSpace: "pre-wrap", background: BG, border: "1px solid var(--line)", borderRadius: 12, padding: 14, color: "#fca5a5", fontSize: 12, lineHeight: 1.6 }}>
             {cpcbError || "No usable city data was returned from CPCB/data.gov.in."}
