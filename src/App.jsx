@@ -91,13 +91,11 @@ const getAQIValue = city => {
 
 const AQI_CATS = [
   { max: 50, label: "Good", color: "#22c55e" },
-  { max: 100, label: "Satisfactory", color: "#84cc16" },
-  { max: 200, label: "Moderate", color: "#f59e0b" },
-  { max: 300, label: "Poor", color: "#f97316" },
-  { max: 400, label: "Very Poor", color: "#ef4444" },
-  { max: 500, label: "Severe", color: "#a855f7" },
+  { max: 100, label: "Moderate", color: "#facc15" },
+  { max: 200, label: "Poor", color: "#f97316" },
+  { max: 500, label: "Severe", color: "#ef4444" },
 ];
-const getCat = aqi => AQI_CATS.find(c => aqi <= c.max) || AQI_CATS[5];
+const getCat = aqi => AQI_CATS.find(c => aqi <= c.max) || AQI_CATS[AQI_CATS.length - 1];
 
 // Utilities for CPCB/data.gov.in station records.
 const POLL_MAP = {
@@ -324,23 +322,21 @@ const DEFAULT_CITIES = [];
 
 const PMETA = {
   PM25: { label: "PM2.5", unit: "µg/m³", safe: 30, color: "#38bdf8" },
-  PM10: { label: "PM10", unit: "µg/m³", safe: 60, color: "#818cf8" },
+  PM10: { label: "PM10", unit: "µg/m³", safe: 60, color: "#0ea5e9" },
   NO2: { label: "NO₂", unit: "µg/m³", safe: 40, color: "#fb923c" },
   SO2: { label: "SO₂", unit: "µg/m³", safe: 50, color: "#f472b6" },
   CO: { label: "CO", unit: "µg/m³", safe: 2000, color: "#34d399" },
-  O3: { label: "O₃", unit: "µg/m³", safe: 100, color: "#a78bfa" },
+  O3: { label: "O₃", unit: "µg/m³", safe: 100, color: "#14b8a6" },
   NH3: { label: "NH₃", unit: "µg/m³", safe: 200, color: "#fbbf24" },
 };
 
 const HEALTH_DB = [
-  { max: 50, icon: "💪", title: "Excellent", gen: "Perfect for all outdoor activities. No health risk.", sens: "No restrictions whatsoever.", mask: false, vent: true },
-  { max: 100, icon: "😊", title: "Acceptable", gen: "Suitable for most people. Great for outdoor exercise.", sens: "Very sensitive individuals may limit prolonged exertion.", mask: false, vent: true },
-  { max: 200, icon: "😐", title: "Moderate", gen: "Sensitive groups should limit prolonged outdoor exertion.", sens: "Children & elderly should reduce outdoor time.", mask: true, vent: false },
-  { max: 300, icon: "😷", title: "Poor", gen: "Avoid prolonged outdoor exertion. Stay indoors if possible.", sens: "Sensitive groups avoid all outdoor activity.", mask: true, vent: false },
-  { max: 400, icon: "🚨", title: "Very Poor", gen: "Everyone should avoid outdoor exertion. Health effects likely.", sens: "Stay indoors. Run air purifiers.", mask: true, vent: false },
-  { max: 500, icon: "☠️", title: "Severe", gen: "Health emergency. Stay indoors and seal doors and windows.", sens: "Evacuate if possible. Seek immediate medical attention.", mask: true, vent: false },
+  { max: 50, icon: "💪", title: "Good", gen: "Perfect for all outdoor activities. No health risk.", sens: "No restrictions whatsoever.", mask: false, vent: true },
+  { max: 100, icon: "😊", title: "Moderate", gen: "Suitable for most people. Sensitive individuals may limit prolonged exertion.", sens: "Very sensitive individuals may reduce long outdoor activity.", mask: false, vent: true },
+  { max: 200, icon: "😐", title: "Poor", gen: "Sensitive groups should limit prolonged outdoor exertion.", sens: "Children and elderly should reduce outdoor time.", mask: true, vent: false },
+  { max: 500, icon: "😷", title: "Severe", gen: "Avoid prolonged outdoor exertion. Prefer indoor activity and filtered air.", sens: "Sensitive groups should avoid outdoor activity.", mask: true, vent: false },
 ];
-const getHealth = aqi => HEALTH_DB.find(h => aqi <= h.max) || HEALTH_DB[5];
+const getHealth = aqi => HEALTH_DB.find(h => aqi <= h.max) || HEALTH_DB[HEALTH_DB.length - 1];
 
 // Deterministic helpers used for demo trends and forecasts.
 const mkRng = seed => {
@@ -399,13 +395,15 @@ async function fetchWeather(lat, lon) {
 const ML_API_URL = import.meta.env.VITE_ML_API_URL;
 const CPCB_API_URL = import.meta.env.VITE_CPCB_API_URL || (ML_API_URL ? `${ML_API_URL}/cpcb-records` : "/api/cpcb-records");
 
-async function fetchCPCBRecords() {
+async function fetchCPCBRecords({ startOffset = 0, maxPages = 1 } = {}) {
   const all = [];
   const limit = 1000;
-  let offset = 0;
+  let offset = startOffset;
   let total = Infinity;
+  let pagesLoaded = 0;
+  let fallback = false;
 
-  while (offset < total) {
+  while (offset < total && pagesLoaded < maxPages) {
     const params = new URLSearchParams({
       format: "json",
       limit: String(limit),
@@ -433,12 +431,15 @@ async function fetchCPCBRecords() {
     const records = Array.isArray(json.records) ? json.records : [];
     all.push(...records);
 
-    if (json.fallback) break;
-    if (all.length >= limit) break;
+    if (json.fallback) {
+      fallback = true;
+      break;
+    }
 
     const apiTotal = Number(json.total);
     total = Number.isFinite(apiTotal) && apiTotal > 0 ? apiTotal : all.length;
 
+    pagesLoaded += 1;
     if (records.length < limit) break;
     offset += limit;
 
@@ -446,11 +447,11 @@ async function fetchCPCBRecords() {
     if (offset > 20000) break;
   }
 
-  return all;
+  return { records: all, nextOffset: offset, total, fallback };
 }
 
-async function fetchCPCBCities() {
-  const rows = await fetchCPCBRecords();
+async function fetchCPCBCities(options) {
+  const { records: rows, nextOffset, total, fallback } = await fetchCPCBRecords(options);
   const { cities, meta } = await csvToCities(rows);
 
   const citiesWithAQI = cities
@@ -470,8 +471,17 @@ async function fetchCPCBCities() {
       ...meta,
       source: "CPCB / data.gov.in",
       cityCount: citiesWithAQI.length,
+      nextOffset,
+      totalRecords: total,
+      fallback,
     },
   };
+}
+
+function mergeStations(existing, incoming) {
+  const byId = new Map(existing.map(station => [station.id, station]));
+  incoming.forEach(station => byId.set(station.id, station));
+  return [...byId.values()].sort((a, b) => getAQIValue(b) - getAQIValue(a));
 }
 
 function degToCompass(deg) {
@@ -558,6 +568,37 @@ function getDistanceKm(lat1, lon1, lat2, lon2) {
   return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
 }
 
+function findNearestStation(cities, coords) {
+  if (!coords || !cities?.length) return { station: null, distance: null };
+
+  let station = null;
+  let distance = Infinity;
+
+  cities.forEach(candidate => {
+    const stationLat = Number(candidate.lat);
+    const stationLon = Number(candidate.lon);
+
+    if (!Number.isFinite(stationLat) || !Number.isFinite(stationLon)) return;
+
+    const candidateDistance = getDistanceKm(
+      coords.lat,
+      coords.lon,
+      stationLat,
+      stationLon
+    );
+
+    if (Number.isFinite(candidateDistance) && candidateDistance < distance) {
+      distance = candidateDistance;
+      station = candidate;
+    }
+  });
+
+  return {
+    station,
+    distance: Number.isFinite(distance) ? Math.round(distance * 10) / 10 : null,
+  };
+}
+
 function formatTemp(celsius, unit = "celsius") {
   if (unit === "fahrenheit") {
     return `${Math.round((Number(celsius) * 9) / 5 + 32)}°F`;
@@ -593,7 +634,7 @@ function AQIGauge({ aqi, color, mobile = false }) {
           <stop offset="0%" stopColor="#22c55e" />
           <stop offset="28%" stopColor="#f59e0b" />
           <stop offset="58%" stopColor="#ef4444" />
-          <stop offset="100%" stopColor="#a855f7" />
+          <stop offset="100%" stopColor="#ef4444" />
         </linearGradient>
       </defs>
       <path d={bg} fill="none" stroke="#dbe7f3" strokeWidth={sw} strokeLinecap="round" />
@@ -802,7 +843,7 @@ function Dashboard({ city, hist, wx, fc, wxLoading, mlLoading, nearestDistance, 
                 <StatCard Icon={Thermometer} label="Temp" value={formatTemp(wx.temp, settings?.temperatureUnit).replace(/[°CF]/g, "")} unit={settings?.temperatureUnit === "fahrenheit" ? "°F" : "°C"} color="#fb923c" sm />
                 <StatCard Icon={Droplets} label="Humidity" value={wx.humidity} unit="%" color={ACC} sm />
                 <StatCard Icon={Wind} label="Wind" value={wx.windSpeed} unit="km/h" color="#34d399" sm />
-                <StatCard Icon={Eye} label="Visibility" value={wx.visibility} unit="km" color="#818cf8" sm />
+                <StatCard Icon={Eye} label="Visibility" value={wx.visibility} unit="km" color="#0ea5e9" sm />
               </div>
             )}
           </div>
@@ -947,7 +988,7 @@ function Analytics({ city, hist }) {
                   <stop offset="5%" stopColor="#38bdf8" stopOpacity={0.2} /><stop offset="95%" stopColor="#38bdf8" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="ag4" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#818cf8" stopOpacity={0.2} /><stop offset="95%" stopColor="#818cf8" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.2} /><stop offset="95%" stopColor="#0ea5e9" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#dbe7f3" />
@@ -955,7 +996,7 @@ function Analytics({ city, hist }) {
               <YAxis tick={{ fill: DIM, fontSize: 9 }} tickLine={false} axisLine={false} width={28} />
               <Tooltip content={<ChartTip />} />
               <Area type="monotone" dataKey="pm25" stroke="#38bdf8" fill="url(#ag3)" name="PM2.5" dot={false} strokeWidth={2} />
-              <Area type="monotone" dataKey="pm10" stroke="#818cf8" fill="url(#ag4)" name="PM10" dot={false} strokeWidth={2} />
+              <Area type="monotone" dataKey="pm10" stroke="#0ea5e9" fill="url(#ag4)" name="PM10" dot={false} strokeWidth={2} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -1847,6 +1888,9 @@ export default function App() {
   const [userLocation, setUserLocation] = useState(null);
   const [nearestDistance, setNearestDistance] = useState(null);
   const locationRequestedRef = useRef(false);
+  const locationStatusRef = useRef("idle");
+  const userLocationRef = useRef(null);
+  const cpcbCitiesRef = useRef([]);
   const DEFAULT_SETTINGS = {
     themeMode: "light",
     aqiDisplayMode: "detailed",
@@ -1879,6 +1923,77 @@ export default function App() {
       activeCities[0] ||
       null;
 
+  function setNearestOrFallback(cities, coords) {
+    const nearest = findNearestStation(cities, coords);
+
+    if (nearest.station) {
+      setCity(nearest.station);
+      setNearestDistance(nearest.distance);
+      setPg("dashboard");
+      return;
+    }
+
+    setCity(cities.find(c => c.id === "delhi") || cities[0]);
+    setNearestDistance(null);
+  }
+
+  useEffect(() => {
+    if (settings.startupPreference !== "nearest") {
+      locationStatusRef.current = "skipped";
+      setStartupLocationLoading(false);
+      return;
+    }
+
+    if (locationRequestedRef.current) return;
+
+    if (!navigator.geolocation) {
+      locationStatusRef.current = "unavailable";
+      setStartupLocationLoading(false);
+      return;
+    }
+
+    locationRequestedRef.current = true;
+    locationStatusRef.current = "pending";
+    setStartupLocationLoading(true);
+
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        const coords = {
+          lat: position.coords.latitude,
+          lon: position.coords.longitude,
+        };
+
+        locationStatusRef.current = "resolved";
+        userLocationRef.current = coords;
+        setUserLocation(coords);
+
+        if (cpcbCitiesRef.current.length) {
+          setNearestOrFallback(cpcbCitiesRef.current, coords);
+        }
+
+        setStartupLocationLoading(false);
+      },
+      error => {
+        console.log("Location access not granted:", error.message);
+        locationStatusRef.current = "unavailable";
+        userLocationRef.current = null;
+        setUserLocation(null);
+        setNearestDistance(null);
+
+        if (cpcbCitiesRef.current.length) {
+          setCity(cpcbCitiesRef.current.find(c => c.id === "delhi") || cpcbCitiesRef.current[0]);
+        }
+
+        setStartupLocationLoading(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 6000,
+        maximumAge: 60000,
+      }
+    );
+  }, [settings.startupPreference]);
+
   useEffect(() => {
     let cancelled = false;
     setCpcbLoading(true);
@@ -1897,8 +2012,12 @@ export default function App() {
         console.log("Delhi from CPCB:", cities.find(c => c.id === "delhi"));
 
         setCpcbCities(cities);
+        cpcbCitiesRef.current = cities;
         setCpcbMeta(meta);
-        if (settings.startupPreference === "nearest" && navigator.geolocation) {
+        if (settings.startupPreference === "nearest" && userLocationRef.current) {
+          setNearestOrFallback(cities, userLocationRef.current);
+          setStartupLocationLoading(false);
+        } else if (settings.startupPreference === "nearest" && locationStatusRef.current === "pending") {
           setStartupLocationLoading(true);
           setCity(null);
         } else {
@@ -1909,12 +2028,29 @@ export default function App() {
             cities[0]
           );
         }
+
+        if (!meta.fallback && Number.isFinite(meta.totalRecords) && meta.nextOffset < meta.totalRecords) {
+          fetchCPCBCities({ startOffset: meta.nextOffset, maxPages: 3 })
+            .then(({ cities: moreCities }) => {
+              if (cancelled || !moreCities?.length) return;
+
+              setCpcbCities(prev => {
+                const merged = mergeStations(prev, moreCities);
+                cpcbCitiesRef.current = merged;
+                return merged;
+              });
+            })
+            .catch(err => {
+              console.log("Background CPCB station load skipped:", err.message);
+            });
+        }
       })
       .catch(err => {
         if (cancelled) return;
         console.error("CPCB API failed:", err);
         setCpcbError(err.message || "Could not load CPCB/data.gov.in API data");
         setCpcbCities([]);
+        cpcbCitiesRef.current = [];
         setCity(null);
         setStartupLocationLoading(false);
       })
@@ -1924,71 +2060,6 @@ export default function App() {
 
     return () => { cancelled = true; };
   }, []);
-
-  useEffect(() => {
-    if (!cpcbCities.length) return;
-    if (settings.startupPreference !== "nearest") return;
-    if (locationRequestedRef.current) return;
-    if (!navigator.geolocation) return;
-
-    locationRequestedRef.current = true;
-
-    navigator.geolocation.getCurrentPosition(
-      position => {
-        const userLat = position.coords.latitude;
-        const userLon = position.coords.longitude;
-
-        setUserLocation({
-          lat: userLat,
-          lon: userLon,
-        });
-
-        let nearestStation = null;
-        let nearestKm = Infinity;
-
-        cpcbCities.forEach(station => {
-          const stationLat = Number(station.lat);
-          const stationLon = Number(station.lon);
-
-          if (!Number.isFinite(stationLat) || !Number.isFinite(stationLon)) return;
-
-          const distance = getDistanceKm(
-            userLat,
-            userLon,
-            stationLat,
-            stationLon
-          );
-
-          if (distance < nearestKm) {
-            nearestKm = distance;
-            nearestStation = station;
-          }
-        });
-
-        if (nearestStation) {
-          setCity(nearestStation);
-          setPg("dashboard");
-          setNearestDistance(Math.round(nearestKm * 10) / 10);
-        } else {
-          setCity(cpcbCities.find(c => c.id === "delhi") || cpcbCities[0]);
-          setNearestDistance(null);
-        }
-        setStartupLocationLoading(false);
-      },
-      error => {
-        console.log("Location access not granted:", error.message);
-        setUserLocation(null);
-        setNearestDistance(null);
-        setCity(cpcbCities.find(c => c.id === "delhi") || cpcbCities[0]);
-        setStartupLocationLoading(false);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 60000,
-      }
-    );
-  }, [cpcbCities, settings.startupPreference]);
 
   useEffect(() => {
     if (!activeCity) return;
@@ -2082,25 +2153,13 @@ export default function App() {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
       position => {
-        const userLat = position.coords.latitude;
-        const userLon = position.coords.longitude;
-        let nearestStation = null;
-        let nearestKm = Infinity;
-
-        activeCities.forEach(station => {
-          const distance = getDistanceKm(userLat, userLon, Number(station.lat), Number(station.lon));
-          if (Number.isFinite(distance) && distance < nearestKm) {
-            nearestKm = distance;
-            nearestStation = station;
-          }
-        });
-
-        if (nearestStation) {
-          setUserLocation({ lat: userLat, lon: userLon });
-          setCity(nearestStation);
-          setNearestDistance(Math.round(nearestKm * 10) / 10);
-          setPg("dashboard");
-        }
+        const coords = {
+          lat: position.coords.latitude,
+          lon: position.coords.longitude,
+        };
+        userLocationRef.current = coords;
+        setUserLocation(coords);
+        setNearestOrFallback(activeCities, coords);
       },
       () => {},
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
