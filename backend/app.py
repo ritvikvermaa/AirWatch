@@ -16,7 +16,7 @@ DATA_GOV_HEADERS = {
     "Accept": "application/json",
     "User-Agent": "Mozilla/5.0 (compatible; AirWatch/1.0)",
 }
-MAX_CPCB_LIMIT = 100
+MAX_CPCB_LIMIT = 1000
 FALLBACK_CSV_PATH = Path(__file__).with_name("aqi_training.csv")
 FALLBACK_CITY_COORDS = {
     "Agra": (27.1767, 78.0081),
@@ -223,7 +223,9 @@ def cpcb_records():
         }), status_code
 
     try:
-        return jsonify(upstream.json())
+        response = jsonify(upstream.json())
+        response.headers["Cache-Control"] = "public, max-age=300"
+        return response
     except ValueError:
         return jsonify({
             "status": "error",
