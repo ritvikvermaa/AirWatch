@@ -178,34 +178,6 @@ function calibrateAQI(aqi) {
   return Math.round(aqi * 0.4);
 }
 
-async function predictMissingPM(p) {
-  try {
-    const res = await fetch(`${import.meta.env.VITE_ML_API_URL}/predict-pm`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        NO2: p.NO2 || 0,
-        SO2: p.SO2 || 0,
-        CO: p.CO || 0,
-        O3: p.O3 || 0,
-        NH3: p.NH3 || 0,
-      }),
-    });
-
-    if (!res.ok) throw new Error("ML API failed");
-
-    return await res.json();
-  } catch (err) {
-    console.error("ML prediction failed:", err);
-    return {
-      PM25: p.PM25 || 0,
-      PM10: p.PM10 || 0,
-    };
-  }
-}
-
 function normalizePollutant(name) {
   const raw = String(name || "").trim();
   if (!raw || raw.toUpperCase() === "NA") return "";
@@ -288,8 +260,8 @@ async function csvToCities(rows) {
       p,
       pollutants: p,
 
-      // Do not call ML here. Initial page load stays fast.
-      // Missing PM values are filled only when a station is selected.
+      // Do not call ML here. The headline AQI should stay tied to the
+      // station pollutants returned by CPCB/data.gov.in.
       apiAQI: null,
       estimatedAQI,
       aqi: estimatedAQI,
@@ -500,7 +472,9 @@ async function fetchCPCBCities(options) {
 
 function mergeStations(existing, incoming) {
   const byId = new Map(existing.map(station => [station.id, station]));
-  incoming.forEach(station => byId.set(station.id, station));
+  incoming.forEach(station => {
+    if (!byId.has(station.id)) byId.set(station.id, station);
+  });
   return [...byId.values()].sort((a, b) => getAQIValue(b) - getAQIValue(a));
 }
 
@@ -913,14 +887,14 @@ function Dashboard({ city, hist, wx, fc, wxLoading, mlLoading, nearestDistance, 
           <div style={{ background: CARD, border: "1px solid #38bdf81a", borderRadius: 14, padding: "11px 15px", display: "flex", alignItems: "center", gap: 10 }}>
             <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#22c55e", boxShadow: "0 0 8px #22c55e", animation: "pulse 2s infinite", flexShrink: 0 }} />
             <div style={{ flex: 1 }}>
-              <div style={{ color: "#22c55e", fontSize: 11, fontWeight: 800 }}>ML MODEL ACTIVE</div>
+              <div style={{ color: "#22c55e", fontSize: 11, fontWeight: 800 }}>CPCB DATA STABLE</div>
               <div style={{ color: MUT, fontSize: 10, marginTop: 1 }}>
                 {mlLoading
-                  ? "Filling missing PM values for selected station..."
-                  : "Random Forest · selected station only"}
+                  ? "Loading selected station data..."
+                  : "Headline AQI uses station pollutant data only"}
               </div>
             </div>
-            <div style={{ fontSize: 12, color: ACC, fontWeight: 800 }}>92%</div>
+            <div style={{ fontSize: 12, color: ACC, fontWeight: 800 }}>LIVE</div>
           </div>
         </div>
       </div>
@@ -1939,8 +1913,7 @@ export default function App() {
   const [startupCityFilter, setStartupCityFilter] = useState("");
   const [wx, setWx] = useState(null);
   const [wxLoading, setWxLoading] = useState(false);
-  const [mlLoading, setMlLoading] = useState(false);
-  const [mlFilledStations, setMlFilledStations] = useState({});
+  const mlLoading = false;
   const [userLocation, setUserLocation] = useState(null);
   const [nearestDistance, setNearestDistance] = useState(null);
   const locationRequestedRef = useRef(false);
@@ -2150,66 +2123,6 @@ export default function App() {
         setWx(genWeatherFallback(activeCity.lat));
         setWxLoading(false);
       });
-  }, [activeCity?.id]);
-
-  useEffect(() => {
-    if (!activeCity) return;
-
-    const p = activeCity.p || {};
-
-    const needsML =
-      (!p.PM25 || !p.PM10) &&
-      (p.NO2 || p.SO2 || p.CO || p.O3 || p.NH3);
-
-    if (!needsML) return;
-    if (mlFilledStations[activeCity.id]) return;
-
-    async function fillSelectedStationPM() {
-      try {
-        setMlLoading(true);
-
-        const pred = await predictMissingPM(p);
-
-        const updatedP = {
-          ...p,
-          PM25: p.PM25 || Math.round(pred.PM25 || 0),
-          PM10: p.PM10 || Math.round(pred.PM10 || 0),
-        };
-
-        const updatedAQI = calcAQI(updatedP);
-
-        const updatedStation = {
-          ...activeCity,
-          p: updatedP,
-          pollutants: updatedP,
-          estimatedAQI: updatedAQI,
-          apiAQI: null,
-          aqi: updatedAQI,
-          category: getCat(updatedAQI).label,
-          apiAQISource:
-            "CPCB station data + ML-filled PM for selected station",
-        };
-
-        setCpcbCities(prev =>
-          prev.map(c =>
-            c.id === activeCity.id ? updatedStation : c
-          )
-        );
-
-        setCity(updatedStation);
-
-        setMlFilledStations(prev => ({
-          ...prev,
-          [activeCity.id]: true,
-        }));
-      } catch (err) {
-        console.error("Selected station ML fill failed:", err);
-      } finally {
-        setMlLoading(false);
-      }
-    }
-
-    fillSelectedStationPM();
   }, [activeCity?.id]);
 
   function applyStartupPreference() {
