@@ -491,15 +491,17 @@ const genForecast = (city, wx) => {
   const r = mkRng(city.id.charCodeAt(0) + 25 * 13);
   const base = getAQIValue(city);
   const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  const ref = new Date("2026-05-25");
+  const ref = new Date();
+  ref.setHours(0, 0, 0, 0);
   const fH = wx.humidity > 70 ? 0.85 : wx.humidity > 55 ? 0.93 : 1.0;
   const fW = wx.windSpeed > 20 ? 0.78 : wx.windSpeed > 12 ? 0.90 : 1.0;
   const fR = wx.rainfall > 5 ? 0.68 : wx.rainfall > 0 ? 0.82 : 1.0;
-  const fSummer = 1.05; // May – heat + dust
-  const pred = base * fH * fW * fR * fSummer;
+  const month = ref.getMonth();
+  const seasonalFactor = month >= 3 && month <= 5 ? 1.05 : month >= 10 || month <= 1 ? 1.12 : 1.0;
+  const pred = base * fH * fW * fR * seasonalFactor;
   let prev = base;
   return Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(ref); d.setDate(ref.getDate() + i + 1);
+    const d = new Date(ref); d.setDate(ref.getDate() + i);
     const dow = d.getDay();
     const aqi = Math.max(20, Math.min(500, Math.round(
       pred + (r() - 0.5) * 26 + (dow === 0 || dow === 6 ? -7 : 0) + i * (r() - 0.5) * 4
@@ -1713,9 +1715,9 @@ function AppLoadingSkeleton() {
           </div>
 
           <div style={{ flex: 1, overflow: "hidden", padding: mobile ? "14px 12px 78px" : "20px 24px" }}>
-            <Skeleton height={26} width={180} />
-            <div style={{ marginTop: 8 }}>
-              <Skeleton height={14} width={360} />
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <Skeleton height={24} width={260} borderRadius={8} />
+              <Skeleton height={18} width={150} borderRadius={8} />
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "280px 1fr 260px", gap: 16, marginTop: 20 }}>
@@ -1763,9 +1765,28 @@ function AppLoadingSkeleton() {
 
             <div style={{ ...cardStyle, marginTop: 18 }}>
               <Skeleton height={12} width={180} />
+              <div style={{ marginTop: 6 }}>
+                <Skeleton height={12} width={260} />
+              </div>
               <div style={{ display: "flex", gap: 10, marginTop: 18 }}>
                 {Array.from({ length: 7 }).map((_, i) => (
                   <Skeleton key={i} height={128} width={116} borderRadius={14} />
+                ))}
+              </div>
+            </div>
+
+            <div style={{ ...cardStyle, marginTop: 18 }}>
+              <Skeleton height={12} width={150} />
+              <div style={{ marginTop: 18 }}>
+                <Skeleton height={196} borderRadius={12} />
+              </div>
+            </div>
+
+            <div style={{ ...cardStyle, marginTop: 18 }}>
+              <Skeleton height={12} width={210} />
+              <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "repeat(3,1fr)", gap: 13, marginTop: 18 }}>
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} height={112} borderRadius={14} />
                 ))}
               </div>
             </div>
@@ -1818,6 +1839,7 @@ export default function App() {
   const [cpcbMeta, setCpcbMeta] = useState(null);
   const [cpcbLoading, setCpcbLoading] = useState(true);
   const [cpcbError, setCpcbError] = useState("");
+  const [startupLocationLoading, setStartupLocationLoading] = useState(false);
   const [wx, setWx] = useState(null);
   const [wxLoading, setWxLoading] = useState(false);
   const [mlLoading, setMlLoading] = useState(false);
@@ -1850,11 +1872,12 @@ export default function App() {
 
   const activeCities = cpcbCities;
 
-  const activeCity =
-    activeCities.find(c => city && c.id === city.id) ||
-    activeCities.find(c => c.id === "delhi") ||
-    activeCities[0] ||
-    null;
+  const activeCity = startupLocationLoading
+    ? null
+    : activeCities.find(c => city && c.id === city.id) ||
+      activeCities.find(c => c.id === "delhi") ||
+      activeCities[0] ||
+      null;
 
   useEffect(() => {
     let cancelled = false;
@@ -1875,11 +1898,17 @@ export default function App() {
 
         setCpcbCities(cities);
         setCpcbMeta(meta);
-        setCity(prev =>
-          cities.find(c => prev && c.id === prev.id) ||
-          cities.find(c => c.id === "delhi") ||
-          cities[0]
-        );
+        if (settings.startupPreference === "nearest" && navigator.geolocation) {
+          setStartupLocationLoading(true);
+          setCity(null);
+        } else {
+          setStartupLocationLoading(false);
+          setCity(prev =>
+            cities.find(c => prev && c.id === prev.id) ||
+            cities.find(c => c.id === "delhi") ||
+            cities[0]
+          );
+        }
       })
       .catch(err => {
         if (cancelled) return;
@@ -1887,6 +1916,7 @@ export default function App() {
         setCpcbError(err.message || "Could not load CPCB/data.gov.in API data");
         setCpcbCities([]);
         setCity(null);
+        setStartupLocationLoading(false);
       })
       .finally(() => {
         if (!cancelled) setCpcbLoading(false);
@@ -1939,12 +1969,18 @@ export default function App() {
           setCity(nearestStation);
           setPg("dashboard");
           setNearestDistance(Math.round(nearestKm * 10) / 10);
+        } else {
+          setCity(cpcbCities.find(c => c.id === "delhi") || cpcbCities[0]);
+          setNearestDistance(null);
         }
+        setStartupLocationLoading(false);
       },
       error => {
         console.log("Location access not granted:", error.message);
         setUserLocation(null);
         setNearestDistance(null);
+        setCity(cpcbCities.find(c => c.id === "delhi") || cpcbCities[0]);
+        setStartupLocationLoading(false);
       },
       {
         enableHighAccuracy: true,
@@ -2089,7 +2125,7 @@ export default function App() {
     };
   }, []);
 
-  if (cpcbLoading) {
+  if (cpcbLoading || startupLocationLoading) {
     return <AppLoadingSkeleton />;
   }
 
