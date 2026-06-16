@@ -394,8 +394,24 @@ async function fetchWeather(lat, lon) {
 // and data.gov.in CORS/upstream failures can be reported clearly.
 const ML_API_URL = import.meta.env.VITE_ML_API_URL;
 const CPCB_API_URL = import.meta.env.VITE_CPCB_API_URL || (ML_API_URL ? `${ML_API_URL}/cpcb-records` : "/api/cpcb-records");
+const BACKEND_API_URL = ML_API_URL || CPCB_API_URL.replace(/\/cpcb-records\/?$/, "");
 
-async function fetchCPCBRecords({ startOffset = 0, maxPages = 1 } = {}) {
+async function fetchNearestCity(coords) {
+  if (!coords || !BACKEND_API_URL) return null;
+
+  const params = new URLSearchParams({
+    lat: String(coords.lat),
+    lon: String(coords.lon),
+  });
+
+  const res = await fetch(`${BACKEND_API_URL}/nearest-city?${params.toString()}`);
+  if (!res.ok) return null;
+
+  const json = await res.json();
+  return json?.city || null;
+}
+
+async function fetchCPCBRecords({ startOffset = 0, maxPages = 1, cityFilter = "" } = {}) {
   const all = [];
   const limit = 1000;
   let offset = startOffset;
@@ -409,6 +425,10 @@ async function fetchCPCBRecords({ startOffset = 0, maxPages = 1 } = {}) {
       limit: String(limit),
       offset: String(offset),
     });
+
+    if (cityFilter) {
+      params.set("city", cityFilter);
+    }
 
     const url = `${CPCB_API_URL}?${params.toString()}`;
     const res = await fetch(url);
@@ -632,8 +652,8 @@ function AQIGauge({ aqi, color, mobile = false }) {
       <defs>
         <linearGradient id="gg" x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%" stopColor="#22c55e" />
-          <stop offset="28%" stopColor="#f59e0b" />
-          <stop offset="58%" stopColor="#ef4444" />
+          <stop offset="33%" stopColor="#facc15" />
+          <stop offset="66%" stopColor="#f97316" />
           <stop offset="100%" stopColor="#ef4444" />
         </linearGradient>
       </defs>
@@ -1487,7 +1507,7 @@ function Sidebar({ pg, set }) {
       {/* AirWatch logo mark */}
       <div style={{ display: mobile ? "none" : "flex", flexDirection: "column", alignItems: "center", marginBottom: 12, gap: 2 }}>
         <div style={{
-          width: 38, height: 38, borderRadius: 11, background: "linear-gradient(135deg,#0ea5e9,#6366f1)",
+          width: 38, height: 38, borderRadius: 11, background: "linear-gradient(135deg,#0ea5e9,#14b8a6)",
           display: "flex", alignItems: "center", justifyContent: "center"
         }}>
           <Wind size={20} color="#fff" />
@@ -1564,7 +1584,7 @@ function TopBar({ city, setCity, cities, meta }) {
       {/* Brand text */}
       <span style={{
         fontSize: mobile ? 15 : 16, fontWeight: 900, color: TXT, letterSpacing: "-0.02em", flexShrink: 0,
-        background: "linear-gradient(135deg,#38bdf8,#6366f1)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent"
+        background: "linear-gradient(135deg,#38bdf8,#14b8a6)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent"
       }}>
         AirWatch
       </span>
@@ -1881,6 +1901,8 @@ export default function App() {
   const [cpcbLoading, setCpcbLoading] = useState(true);
   const [cpcbError, setCpcbError] = useState("");
   const [startupLocationLoading, setStartupLocationLoading] = useState(false);
+  const [startupLocationReady, setStartupLocationReady] = useState(false);
+  const [startupCityFilter, setStartupCityFilter] = useState("");
   const [wx, setWx] = useState(null);
   const [wxLoading, setWxLoading] = useState(false);
   const [mlLoading, setMlLoading] = useState(false);
@@ -1941,6 +1963,8 @@ export default function App() {
     if (settings.startupPreference !== "nearest") {
       locationStatusRef.current = "skipped";
       setStartupLocationLoading(false);
+      setStartupCityFilter("");
+      setStartupLocationReady(true);
       return;
     }
 
@@ -1949,6 +1973,8 @@ export default function App() {
     if (!navigator.geolocation) {
       locationStatusRef.current = "unavailable";
       setStartupLocationLoading(false);
+      setStartupCityFilter("");
+      setStartupLocationReady(true);
       return;
     }
 
@@ -1957,7 +1983,7 @@ export default function App() {
     setStartupLocationLoading(true);
 
     navigator.geolocation.getCurrentPosition(
-      position => {
+      async position => {
         const coords = {
           lat: position.coords.latitude,
           lon: position.coords.longitude,
@@ -1966,6 +1992,10 @@ export default function App() {
         locationStatusRef.current = "resolved";
         userLocationRef.current = coords;
         setUserLocation(coords);
+
+        const nearestCity = await fetchNearestCity(coords).catch(() => null);
+        setStartupCityFilter(nearestCity || "");
+        setStartupLocationReady(true);
 
         if (cpcbCitiesRef.current.length) {
           setNearestOrFallback(cpcbCitiesRef.current, coords);
@@ -1979,6 +2009,8 @@ export default function App() {
         userLocationRef.current = null;
         setUserLocation(null);
         setNearestDistance(null);
+        setStartupCityFilter("");
+        setStartupLocationReady(true);
 
         if (cpcbCitiesRef.current.length) {
           setCity(cpcbCitiesRef.current.find(c => c.id === "delhi") || cpcbCitiesRef.current[0]);
@@ -1995,11 +2027,13 @@ export default function App() {
   }, [settings.startupPreference]);
 
   useEffect(() => {
+    if (!startupLocationReady) return;
+
     let cancelled = false;
     setCpcbLoading(true);
     setCpcbError("");
 
-    fetchCPCBCities()
+    fetchCPCBCities({ cityFilter: startupCityFilter })
       .then(({ cities, meta }) => {
         if (cancelled) return;
 
@@ -2029,8 +2063,16 @@ export default function App() {
           );
         }
 
-        if (!meta.fallback && Number.isFinite(meta.totalRecords) && meta.nextOffset < meta.totalRecords) {
-          fetchCPCBCities({ startOffset: meta.nextOffset, maxPages: 3 })
+        if (!meta.fallback) {
+          const backgroundOptions = startupCityFilter
+            ? { startOffset: 0, maxPages: 3, cityFilter: "" }
+            : Number.isFinite(meta.totalRecords) && meta.nextOffset < meta.totalRecords
+              ? { startOffset: meta.nextOffset, maxPages: 3 }
+              : null;
+
+          if (!backgroundOptions) return;
+
+          fetchCPCBCities(backgroundOptions)
             .then(({ cities: moreCities }) => {
               if (cancelled || !moreCities?.length) return;
 
@@ -2059,7 +2101,7 @@ export default function App() {
       });
 
     return () => { cancelled = true; };
-  }, []);
+  }, [startupLocationReady, startupCityFilter]);
 
   useEffect(() => {
     if (!activeCity) return;

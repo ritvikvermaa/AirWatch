@@ -1,6 +1,7 @@
 import csv
 import os
 import time
+from math import atan2, cos, radians, sin, sqrt
 from pathlib import Path
 
 import requests
@@ -108,7 +109,7 @@ def home():
     return {
         "status": "running",
         "service": "AirWatch Backend",
-        "endpoints": ["/predict-pm", "/cpcb-records"]
+        "endpoints": ["/predict-pm", "/cpcb-records", "/nearest-city"]
     }
 CORS(app)
 
@@ -152,6 +153,33 @@ def predict_pm():
         "PM10": round(float(pm10))
     })
 
+@app.route("/nearest-city", methods=["GET"])
+def nearest_city():
+    try:
+        lat = float(request.args.get("lat", ""))
+        lon = float(request.args.get("lon", ""))
+    except ValueError:
+        return jsonify({
+            "status": "error",
+            "message": "lat and lon must be numbers"
+        }), 400
+
+    nearest_name = None
+    nearest_distance = None
+
+    for city, (city_lat, city_lon) in FALLBACK_CITY_COORDS.items():
+        distance = haversine_km(lat, lon, city_lat, city_lon)
+
+        if nearest_distance is None or distance < nearest_distance:
+            nearest_name = city
+            nearest_distance = distance
+
+    return jsonify({
+        "status": "ok",
+        "city": nearest_name,
+        "distanceKm": round(nearest_distance, 1) if nearest_distance is not None else None,
+    })
+
 @app.route("/cpcb-records", methods=["GET"])
 def cpcb_records():
     api_key = os.environ.get("DATA_GOV_API_KEY") or os.environ.get("VITE_DATA_GOV_API_KEY")
@@ -178,6 +206,10 @@ def cpcb_records():
         "offset": str(offset),
     }
 
+    city_filter = (request.args.get("city") or "").strip()
+    if city_filter:
+        params["filters[city]"] = city_filter
+
     upstream = None
     last_error = None
 
@@ -199,7 +231,7 @@ def cpcb_records():
             time.sleep(1.5)
 
     if upstream is None:
-        return fallback_cpcb_response(limit, offset, "Could not reach data.gov.in API")
+        return fallback_cpcb_response(limit, offset, "Could not reach data.gov.in API", city_filter)
 
     content_type = upstream.headers.get("content-type", "")
 
@@ -212,7 +244,7 @@ def cpcb_records():
                 pass
 
         if upstream.status_code in (502, 503, 504):
-            return fallback_cpcb_response(limit, offset, f"data.gov.in API failed: {upstream.status_code}")
+            return fallback_cpcb_response(limit, offset, f"data.gov.in API failed: {upstream.status_code}", city_filter)
 
         status_code = 502 if upstream.status_code >= 500 else upstream.status_code
 
@@ -233,8 +265,8 @@ def cpcb_records():
             "details": upstream.text[:500]
         }), 502
 
-def fallback_cpcb_response(limit, offset, reason):
-    records = build_fallback_cpcb_records()
+def fallback_cpcb_response(limit, offset, reason, city_filter=""):
+    records = build_fallback_cpcb_records(city_filter)
     page = records[offset:offset + limit]
 
     return jsonify({
@@ -248,7 +280,7 @@ def fallback_cpcb_response(limit, offset, reason):
         "message": reason,
     })
 
-def build_fallback_cpcb_records():
+def build_fallback_cpcb_records(city_filter=""):
     if not FALLBACK_CSV_PATH.exists():
         return []
 
@@ -264,6 +296,9 @@ def build_fallback_cpcb_records():
             coords = FALLBACK_CITY_COORDS.get(city)
 
             if not city or not station or not coords:
+                continue
+
+            if city_filter and city.lower() != city_filter.lower():
                 continue
 
             lat, lon = coords
@@ -287,6 +322,13 @@ def build_fallback_cpcb_records():
                 })
 
     return records
+
+def haversine_km(lat1, lon1, lat2, lon2):
+    radius = 6371
+    d_lat = radians(lat2 - lat1)
+    d_lon = radians(lon2 - lon1)
+    a = sin(d_lat / 2) ** 2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(d_lon / 2) ** 2
+    return radius * (2 * atan2(sqrt(a), sqrt(1 - a)))
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True)
