@@ -644,6 +644,60 @@ function getEffectiveTheme(mode = "light") {
   return mode;
 }
 
+function getThemeVars(theme) {
+  return theme === "dark"
+    ? {
+        "--app-shell": "#070d1a",
+        "--bg": "#0b1423",
+        "--card": "#111c2d",
+        "--border": "#1f2e43",
+        "--line": "#263850",
+        "--muted": "#9fb1c7",
+        "--dim": "#71839a",
+        "--text": "#edf6ff",
+        "--accent": "#38bdf8",
+        "--accent-strong": "#164e63",
+        "--accent-border-strong": "#155e7580",
+        "--control-off": "#233247",
+        "--skeleton-base": "#172339",
+        "--skeleton-highlight": "#253853",
+      }
+    : {
+        "--app-shell": "#eef5fb",
+        "--bg": "#f4f8fb",
+        "--card": "#ffffff",
+        "--border": "#dbe7f3",
+        "--line": "#dbe7f3",
+        "--muted": "#64748b",
+        "--dim": "#94a3b8",
+        "--text": "#0f172a",
+        "--accent": "#0ea5e9",
+        "--accent-strong": "#1e3a5f",
+        "--accent-border-strong": "#1e3a5f55",
+        "--control-off": "var(--control-off)",
+        "--skeleton-base": "#dbe7f3",
+        "--skeleton-highlight": "#edf6ff",
+      };
+}
+
+function getAppBackground(theme) {
+  return theme === "dark"
+    ? "radial-gradient(circle at 12% 0%, #12314a 0%, transparent 28%), radial-gradient(circle at 88% 10%, #0f3b36 0%, transparent 26%), linear-gradient(135deg, #070d1a 0%, #0b1423 48%, #111827 100%)"
+    : "linear-gradient(135deg, #f8fbff 0%, #eef6ff 45%, #f4f8fb 100%)";
+}
+
+function getSavedThemeMode() {
+  if (typeof window === "undefined") return "dark";
+
+  try {
+    const raw = window.localStorage.getItem("airwatch_settings_v2");
+    const saved = raw ? JSON.parse(raw) : null;
+    return saved?.themeMode || "dark";
+  } catch {
+    return "dark";
+  }
+}
+
 // Reusable UI components
 function AQIGauge({ aqi, color, mobile = false }) {
   const cx = 100, cy = 85, r = 70, sw = 13;
@@ -665,7 +719,7 @@ function AQIGauge({ aqi, color, mobile = false }) {
           <stop offset="100%" stopColor="#ef4444" />
         </linearGradient>
       </defs>
-      <path d={bg} fill="none" stroke="#dbe7f3" strokeWidth={sw} strokeLinecap="round" />
+      <path d={bg} fill="none" stroke="var(--line)" strokeWidth={sw} strokeLinecap="round" />
       <path d={vp} fill="none" stroke="url(#gg)" strokeWidth={sw} strokeLinecap="round" />
       <text x="100" y="78" textAnchor="middle" style={{ fontFamily: '"JetBrains Mono",monospace', fontSize: 40, fontWeight: 700, fill: color }}>{aqi}</text>
       <text x="100" y="97" textAnchor="middle" style={{ fontFamily: "Outfit,sans-serif", fontSize: 10, fill: MUT, letterSpacing: "0.12em" }}>AQI</text>
@@ -691,12 +745,12 @@ function PollBar({ label, value, unit, safe, color }) {
   return (
     <div style={{ marginBottom: 12 }}>
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-        <span style={{ color: "#94a3b8", fontSize: 12, fontWeight: 500 }}>{label}</span>
+        <span style={{ color: MUT, fontSize: 12, fontWeight: 500 }}>{label}</span>
         <span style={{ color: over ? color : "#22c55e", fontSize: 12, fontWeight: 700, fontFamily: "monospace" }}>
           {value} <span style={{ fontSize: 10, fontWeight: 400, color: DIM }}>{unit}</span>
         </span>
       </div>
-      <div style={{ background: "#dbe7f3", borderRadius: 3, height: 5, overflow: "hidden" }}>
+      <div style={{ background: "var(--line)", borderRadius: 3, height: 5, overflow: "hidden" }}>
         <div style={{ width: `${pct}%`, height: "100%", background: over ? color : "#22c55e", borderRadius: 3, transition: "width 0.7s ease" }} />
       </div>
       <div style={{ display: "flex", justifyContent: "space-between", marginTop: 2 }}>
@@ -781,7 +835,7 @@ function Dashboard({ city, hist, wx, fc, wxLoading, mlLoading, nearestDistance, 
             <p style={{ color: MUT, fontSize: 13, lineHeight: 1.7, margin: "0 0 14px" }}>{hlth.gen}</p>
             <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "repeat(3,1fr)", gap: 10 }}>
               {["PM25", "PM10", "NO2"].map(k => (
-                <div key={k} style={{ background: BG, border: "1px solid #dbe7f3", borderRadius: 14, padding: "13px 14px" }}>
+                <div key={k} style={{ background: BG, border: "1px solid var(--line)", borderRadius: 14, padding: "13px 14px" }}>
                   <div style={{ fontSize: 10, color: MUT, fontWeight: 800 }}>{PMETA[k].label}</div>
                   <div style={{ fontSize: 20, color: PMETA[k].color, fontWeight: 900, fontFamily: "monospace", marginTop: 3 }}>{city.p[k] || 0}</div>
                   <div style={{ fontSize: 9, color: DIM }}>{PMETA[k].unit}</div>
@@ -835,7 +889,7 @@ function Dashboard({ city, hist, wx, fc, wxLoading, mlLoading, nearestDistance, 
           <div style={{ padding: "5px 18px", borderRadius: 20, background: `${cat.color}18`, border: `1px solid ${cat.color}30`, marginTop: 8 }}>
             <span style={{ color: cat.color, fontSize: 14, fontWeight: 800 }}>{cat.label}</span>
           </div>
-          <p style={{ color: "#64748b", fontSize: 11, textAlign: "center", marginTop: 10, maxWidth: 200, lineHeight: 1.65 }}>{hlth.gen}</p>
+          <p style={{ color: DIM, fontSize: 11, textAlign: "center", marginTop: 10, maxWidth: 200, lineHeight: 1.65 }}>{hlth.gen}</p>
           <div style={{ display: "flex", gap: 6, marginTop: 8, flexWrap: "wrap", justifyContent: "center" }}>
             {[{ ok: !hlth.mask, label: hlth.mask ? "N95 Required" : "No Mask" }, { ok: hlth.vent, label: hlth.vent ? "Ventilate" : "Keep Closed" }].map((t, i) => (
               <span key={i} style={{
@@ -880,7 +934,7 @@ function Dashboard({ city, hist, wx, fc, wxLoading, mlLoading, nearestDistance, 
               <AlertTriangle size={16} color={cat.color} style={{ flexShrink: 0, marginTop: 2 }} />
               <div>
                 <div style={{ color: cat.color, fontWeight: 800, fontSize: 12, marginBottom: 3 }}>Health Advisory</div>
-                <div style={{ color: "#94a3b8", fontSize: 11, lineHeight: 1.55 }}>{hlth.sens}</div>
+                <div style={{ color: MUT, fontSize: 11, lineHeight: 1.55 }}>{hlth.sens}</div>
               </div>
             </div>
           )}
@@ -934,7 +988,7 @@ function Dashboard({ city, hist, wx, fc, wxLoading, mlLoading, nearestDistance, 
                 <stop offset="95%" stopColor={cat.color} stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#dbe7f3" />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--line)" />
             <XAxis dataKey="date" tick={{ fill: DIM, fontSize: 9 }} tickLine={false} axisLine={false} interval={6} />
             <YAxis tick={{ fill: DIM, fontSize: 9 }} tickLine={false} axisLine={false} width={28} />
             <Tooltip content={<ChartTip />} />
@@ -958,7 +1012,7 @@ function Dashboard({ city, hist, wx, fc, wxLoading, mlLoading, nearestDistance, 
                 <c.Icon size={13} color={c.color} />
                 <span style={{ color: c.color, fontWeight: 800, fontSize: 10, letterSpacing: "0.06em" }}>{c.title.toUpperCase()}</span>
               </div>
-              <p style={{ color: "#94a3b8", fontSize: 12, lineHeight: 1.65, margin: 0 }}>{c.text}</p>
+              <p style={{ color: MUT, fontSize: 12, lineHeight: 1.65, margin: 0 }}>{c.text}</p>
             </div>
           ))}
         </div>
@@ -998,7 +1052,7 @@ function Analytics({ city, hist }) {
                 <stop offset="95%" stopColor={ACC} stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#dbe7f3" />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--line)" />
             <XAxis dataKey="date" tick={{ fill: DIM, fontSize: 9 }} tickLine={false} axisLine={false} interval={6} />
             <YAxis tick={{ fill: DIM, fontSize: 9 }} tickLine={false} axisLine={false} width={28} domain={[0, 500]} />
             <Tooltip content={<ChartTip />} />
@@ -1019,7 +1073,7 @@ function Analytics({ city, hist }) {
                   <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.2} /><stop offset="95%" stopColor="#0ea5e9" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#dbe7f3" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--line)" />
               <XAxis dataKey="date" tick={{ fill: DIM, fontSize: 9 }} tickLine={false} axisLine={false} interval={9} />
               <YAxis tick={{ fill: DIM, fontSize: 9 }} tickLine={false} axisLine={false} width={28} />
               <Tooltip content={<ChartTip />} />
@@ -1032,9 +1086,9 @@ function Analytics({ city, hist }) {
           <div style={{ fontSize: 10, color: MUT, fontWeight: 700, letterSpacing: "0.13em", marginBottom: 16 }}>POLLUTANT LEVELS</div>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={pData} layout="vertical" margin={{ left: 5, right: 12 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#dbe7f3" horizontal={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--line)" horizontal={false} />
               <XAxis type="number" tick={{ fill: DIM, fontSize: 9 }} tickLine={false} axisLine={false} />
-              <YAxis type="category" dataKey="name" tick={{ fill: "#64748b", fontSize: 10 }} tickLine={false} axisLine={false} width={38} />
+              <YAxis type="category" dataKey="name" tick={{ fill: "var(--dim)", fontSize: 10 }} tickLine={false} axisLine={false} width={38} />
               <Tooltip content={<ChartTip />} />
               <Bar dataKey="value" name="Level" radius={4}>
                 {pData.map((e, i) => <Cell key={i} fill={e.color} />)}
@@ -1047,7 +1101,7 @@ function Analytics({ city, hist }) {
         <div style={{ fontSize: 10, color: MUT, fontWeight: 700, letterSpacing: "0.13em", marginBottom: 16 }}>NO₂ & SO₂ — 30 DAYS</div>
         <ResponsiveContainer width="100%" height={155}>
           <AreaChart data={hist}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#dbe7f3" />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--line)" />
             <XAxis dataKey="date" tick={{ fill: DIM, fontSize: 9 }} tickLine={false} axisLine={false} interval={9} />
             <YAxis tick={{ fill: DIM, fontSize: 9 }} tickLine={false} axisLine={false} width={28} />
             <Tooltip content={<ChartTip />} />
@@ -1075,8 +1129,9 @@ function MapFlyToSelected({ city }) {
   return null;
 }
 
-function MapView({ cities, sel, onSel, settings }) {
+function MapView({ cities, sel, onSel, settings, theme }) {
   const mobile = useIsMobile();
+  const darkMap = theme === "dark";
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       <div style={{ background: CARD, border: `1px solid ${BORD}`, borderRadius: 20, padding: mobile ? "16px 14px" : "22px 20px" }}>
@@ -1088,7 +1143,7 @@ function MapView({ cities, sel, onSel, settings }) {
           <MapContentSkeleton />
         ) : (
         <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "1fr 260px", gap: mobile ? 12 : 18, alignItems: "start" }}>
-          <div style={{ height: mobile ? 380 : 560, borderRadius: 18, overflow: "hidden", border: "1px solid #dbe7f3" }}>
+          <div style={{ height: mobile ? 380 : 560, borderRadius: 18, overflow: "hidden", border: "1px solid var(--line)" }}>
             <MapContainer
               center={INDIA_CENTER}
               zoom={5}
@@ -1098,8 +1153,8 @@ function MapView({ cities, sel, onSel, settings }) {
               style={{ height: "100%", width: "100%" }}
             >
               <TileLayer
-                attribution='&copy; OpenStreetMap contributors'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution={darkMap ? '&copy; OpenStreetMap contributors &copy; CARTO' : '&copy; OpenStreetMap contributors'}
+                url={darkMap ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"}
               />
 
               <MapFlyToSelected city={sel} />
@@ -1156,7 +1211,7 @@ function MapView({ cities, sel, onSel, settings }) {
                 <div key={c.id} onClick={() => onSel(c)} style={{
                   padding: "9px 10px", borderRadius: 10, cursor: "pointer",
                   background: c.id === sel?.id ? `${cat.color}14` : BG,
-                  border: `1px solid ${c.id === sel?.id ? `${cat.color}44` : "#dbe7f3"}`,
+                  border: `1px solid ${c.id === sel?.id ? `${cat.color}44` : "var(--line)"}`,
                   display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8
                 }}>
                   <div style={{ minWidth: 0 }}>
@@ -1196,7 +1251,7 @@ function SettingToggle({ label, desc, value, onChange }) {
   return (
     <div style={{
       background: BG,
-      border: "1px solid #dbe7f3",
+      border: "1px solid var(--line)",
       borderRadius: 14,
       padding: "14px 16px",
       display: "flex",
@@ -1214,8 +1269,8 @@ function SettingToggle({ label, desc, value, onChange }) {
           width: 46,
           height: 26,
           borderRadius: 20,
-          border: `1px solid ${value ? ACC : "#94a3b8"}`,
-          background: value ? `${ACC}33` : "#e2e8f0",
+          border: `1px solid ${value ? ACC : "var(--line)"}`,
+          background: value ? `${ACC}33` : "var(--control-off)",
           cursor: "pointer",
           position: "relative",
           flexShrink: 0,
@@ -1228,7 +1283,7 @@ function SettingToggle({ label, desc, value, onChange }) {
           width: 16,
           height: 16,
           borderRadius: "50%",
-          background: value ? ACC : "#64748b",
+          background: value ? ACC : DIM,
           transition: "left 0.18s ease",
         }} />
       </button>
@@ -1240,7 +1295,7 @@ function SettingSelect({ label, value, onChange, options }) {
   return (
     <div style={{
       background: BG,
-      border: "1px solid #dbe7f3",
+      border: "1px solid var(--line)",
       borderRadius: 14,
       padding: "14px 16px",
     }}>
@@ -1252,7 +1307,7 @@ function SettingSelect({ label, value, onChange, options }) {
           width: "100%",
           background: CARD,
           color: TXT,
-          border: "1px solid #94a3b8",
+          border: "1px solid var(--line)",
           borderRadius: 10,
           padding: "9px 11px",
           outline: "none",
@@ -1267,7 +1322,7 @@ function SettingSelect({ label, value, onChange, options }) {
 
 function SettingSegment({ label, desc, value, onChange, options }) {
   return (
-    <div style={{ background: BG, border: "1px solid #dbe7f3", borderRadius: 16, padding: "16px 16px" }}>
+    <div style={{ background: BG, border: "1px solid var(--line)", borderRadius: 16, padding: "16px 16px" }}>
       <div style={{ color: TXT, fontSize: 13, fontWeight: 900 }}>{label}</div>
       {desc && <div style={{ color: MUT, fontSize: 11, marginTop: 4, lineHeight: 1.45 }}>{desc}</div>}
       <div style={{ display: "flex", gap: 8, marginTop: 13, flexWrap: "wrap" }}>
@@ -1278,7 +1333,7 @@ function SettingSegment({ label, desc, value, onChange, options }) {
               key={opt.value}
               onClick={() => onChange(opt.value)}
               style={{
-                border: `1px solid ${active ? ACC : "#dbe7f3"}`,
+                border: `1px solid ${active ? ACC : "var(--line)"}`,
                 background: active ? `${ACC}18` : CARD,
                 color: active ? ACC : TXT,
                 borderRadius: 999,
@@ -1357,7 +1412,7 @@ function SettingsPage({ meta, city, cities, settings, setSettings, applyStartupP
           options={[{ value: "aqi", label: "AQI Size" }, { value: "fixed", label: "Fixed Size" }]}
         />
 
-        <div style={{ background: BG, border: "1px solid #dbe7f3", borderRadius: 16, padding: "16px 16px" }}>
+        <div style={{ background: BG, border: "1px solid var(--line)", borderRadius: 16, padding: "16px 16px" }}>
           <SettingSegment
             label="Startup Location"
             desc="Choose whether the app should start from your nearest station or the highest AQI station."
@@ -1391,7 +1446,7 @@ function SettingsPage({ meta, city, cities, settings, setSettings, applyStartupP
           options={[{ value: "celsius", label: "Celsius °C" }, { value: "fahrenheit", label: "Fahrenheit °F" }]}
         />
 
-        <div style={{ background: BG, border: "1px solid #dbe7f3", borderRadius: 16, padding: "16px 16px" }}>
+        <div style={{ background: BG, border: "1px solid var(--line)", borderRadius: 16, padding: "16px 16px" }}>
           <div style={{ color: TXT, fontSize: 13, fontWeight: 900 }}>Current Selection</div>
           <div style={{ color: MUT, fontSize: 11, marginTop: 5, lineHeight: 1.55 }}>{city?.station || city?.name}</div>
           <div style={{ color: ACC, fontSize: 12, fontWeight: 900, marginTop: 8 }}>AQI {getAQIValue(city)} · {getCat(getAQIValue(city)).label}</div>
@@ -1407,7 +1462,7 @@ function SettingsPage({ meta, city, cities, settings, setSettings, applyStartupP
             ["Display Mode", settings.aqiDisplayMode === "simple" ? "Simple AQI" : "Detailed Dashboard"],
             ["Map Style", settings.mapMarkerStyle === "fixed" ? "Fixed Markers" : "AQI Sized Markers"],
           ].map(([label, value]) => (
-            <div key={label} style={{ background: BG, border: "1px solid #dbe7f3", borderRadius: 14, padding: "14px 16px" }}>
+            <div key={label} style={{ background: BG, border: "1px solid var(--line)", borderRadius: 14, padding: "14px 16px" }}>
               <div style={{ color: MUT, fontSize: 10, fontWeight: 900, letterSpacing: "0.08em", textTransform: "uppercase" }}>{label}</div>
               <div style={{ color: TXT, fontSize: mobile ? 13 : 14, fontWeight: 900, marginTop: 6, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: mobile ? "normal" : "nowrap", wordBreak: "break-word", lineHeight: 1.35 }}>{value}</div>
             </div>
@@ -1439,7 +1494,7 @@ function Health({ city, fc }) {
         <div style={{ fontSize: 50 }}>{hlth.icon}</div>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 22, fontWeight: 900, color: cat.color, marginBottom: 7 }}>{hlth.title} Air Quality</div>
-          <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.7, margin: "0 0 14px" }}>{hlth.gen}</p>
+          <p style={{ color: MUT, fontSize: 14, lineHeight: 1.7, margin: "0 0 14px" }}>{hlth.gen}</p>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             {[{ ok: !hlth.mask, label: hlth.mask ? "N95 Mask Required" : "No Mask Needed" }, { ok: hlth.vent, label: hlth.vent ? "Open Windows" : "Keep Closed" }].map((t, i) => (
               <div key={i} style={{
@@ -1461,7 +1516,7 @@ function Health({ city, fc }) {
         <div style={{ fontSize: 10, color: MUT, fontWeight: 700, letterSpacing: "0.13em", marginBottom: 16 }}>RISK BY POPULATION GROUP</div>
         <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "repeat(3,1fr)", gap: 12 }}>
           {groups.map((g, i) => (
-            <div key={i} style={{ background: BG, border: "1px solid #dbe7f3", borderRadius: 14, padding: "15px 15px" }}>
+            <div key={i} style={{ background: BG, border: "1px solid var(--line)", borderRadius: 14, padding: "15px 15px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 9 }}>
                 <div style={{ display: "flex", gap: 7, alignItems: "center" }}>
                   <span style={{ fontSize: 22 }}>{g.icon}</span>
@@ -1469,7 +1524,7 @@ function Health({ city, fc }) {
                 </div>
                 <span style={{ fontSize: 9, fontWeight: 800, padding: "3px 9px", borderRadius: 8, background: `${rc(g.risk)}14`, color: rc(g.risk) }}>{g.risk}</span>
               </div>
-              <p style={{ color: "#64748b", fontSize: 11, lineHeight: 1.62, margin: 0 }}>{g.tip}</p>
+              <p style={{ color: DIM, fontSize: 11, lineHeight: 1.62, margin: 0 }}>{g.tip}</p>
             </div>
           ))}
         </div>
@@ -1508,7 +1563,7 @@ function Sidebar({ pg, set }) {
   const mobile = useIsMobile();
   return (
     <div style={{
-      width: mobile ? "100%" : 62, background: BG, borderRight: mobile ? "none" : "1px solid #dbe7f3", borderTop: mobile ? "1px solid #dbe7f3" : "none", display: "flex",
+      width: mobile ? "100%" : 62, background: BG, borderRight: mobile ? "none" : "1px solid var(--line)", borderTop: mobile ? "1px solid var(--line)" : "none", display: "flex",
       flexDirection: mobile ? "row" : "column", alignItems: "center", justifyContent: mobile ? "space-around" : "flex-start", padding: mobile ? "8px 10px" : "18px 0", gap: 6,
       flexShrink: 0, height: mobile ? 64 : "100vh", position: mobile ? "fixed" : "sticky", top: mobile ? "auto" : 0, bottom: mobile ? 0 : "auto", left: mobile ? 0 : "auto", right: mobile ? 0 : "auto", zIndex: 9999
     }}>
@@ -1522,7 +1577,7 @@ function Sidebar({ pg, set }) {
         </div>
         <div style={{ fontSize: 6, color: DIM, fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase" }}>AirWatch</div>
       </div>
-      <div style={{ display: mobile ? "none" : "block", width: 28, height: 1, background: "#dbe7f3", marginBottom: 5 }} />
+      <div style={{ display: mobile ? "none" : "block", width: 28, height: 1, background: "var(--line)", marginBottom: 5 }} />
       {NAV.map(({ id, Icon, label }) => {
         const on = pg === id;
         return (
@@ -1545,7 +1600,7 @@ function Sidebar({ pg, set }) {
         style={{
           width: 34, height: 34, borderRadius: 8,
           background: pg === "settings" ? `${ACC}18` : CARD,
-          border: `1px solid ${pg === "settings" ? `${ACC}30` : "#dbe7f3"}`,
+          border: `1px solid ${pg === "settings" ? `${ACC}30` : "var(--line)"}`,
           display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer"
         }}
       >
@@ -1584,7 +1639,7 @@ function TopBar({ city, setCity, cities, meta }) {
     // No zIndex on the bar itself — avoids creating a stacking context that
     // traps the dropdown below any fixed overlays
     <div style={{
-      minHeight: mobile ? 72 : 60, background: BG, borderBottom: "1px solid #dbe7f3", display: "flex",
+      minHeight: mobile ? 72 : 60, background: BG, borderBottom: "1px solid var(--line)", display: "flex",
       alignItems: "center", flexWrap: "nowrap", padding: mobile ? "10px 12px" : "0 22px", gap: mobile ? 8 : 14, position: "sticky", top: 0,
       /* zIndex intentionally omitted */
     }}>
@@ -1596,13 +1651,13 @@ function TopBar({ city, setCity, cities, meta }) {
       }}>
         AirWatch
       </span>
-      <div style={{ display: mobile ? "none" : "block", width: 1, height: 20, background: "#dbe7f3" }} />
+      <div style={{ display: mobile ? "none" : "block", width: 1, height: 20, background: "var(--line)" }} />
 
       {/* City selector — ref wraps trigger + dropdown together */}
       <div ref={wrapRef} style={{ position: "relative", flex: mobile ? 1 : "0 0 auto", minWidth: 0 }}>
         <div onClick={() => setOpen(v => !v)} style={{
           display: "flex", alignItems: "center", gap: 8, padding: mobile ? "7px 10px" : "6px 14px",
-          borderRadius: 10, background: CARD, border: `1px solid ${open ? "#1e3a5f" : "#dbe7f3"}`, cursor: "pointer",
+          borderRadius: 10, background: CARD, border: `1px solid ${open ? "var(--accent-strong)" : "var(--line)"}`, cursor: "pointer",
           transition: "border-color 0.15s"
         }}>
           <MapPin size={13} color={ACC} />
@@ -1619,7 +1674,7 @@ function TopBar({ city, setCity, cities, meta }) {
           <div style={{
             position: "absolute", top: "calc(100% + 6px)", left: 0,
             zIndex: 9999, background: CARD,
-            border: "1px solid #1e3a5f55", borderRadius: 14, padding: 8,
+            border: "1px solid var(--accent-border-strong)", borderRadius: 14, padding: 8,
             minWidth: mobile ? "calc(100vw - 24px)" : 268, boxShadow: "0 24px 56px #000000aa",
             // Ensure dropdown is always on top regardless of ancestor stacking contexts
             isolation: "isolate",
@@ -1627,7 +1682,7 @@ function TopBar({ city, setCity, cities, meta }) {
             {/* Search box */}
             <div style={{
               display: "flex", alignItems: "center", gap: 7, padding: "7px 10px",
-              background: BG, borderRadius: 9, marginBottom: 7, border: "1px solid #dbe7f3"
+              background: BG, borderRadius: 9, marginBottom: 7, border: "1px solid var(--line)"
             }}>
               <Search size={12} color={MUT} />
               <input
@@ -1686,7 +1741,7 @@ function TopBar({ city, setCity, cities, meta }) {
             </div>
 
             {/* Footer count */}
-            <div style={{ borderTop: "1px solid #dbe7f3", marginTop: 6, paddingTop: 7, paddingLeft: 4 }}>
+            <div style={{ borderTop: "1px solid var(--line)", marginTop: 6, paddingTop: 7, paddingLeft: 4 }}>
               <span style={{ fontSize: 9, color: DIM }}>
                 {filtered.length} of {cities.length} cities
               </span>
@@ -1702,7 +1757,7 @@ function TopBar({ city, setCity, cities, meta }) {
       }}>
         <div style={{ width: 6, height: 6, borderRadius: "50%", background: cat.color }} />
         <span style={{ fontSize: 12, fontWeight: 800, color: cat.color }}>{aqi}</span>
-        <span style={{ fontSize: 11, color: "#64748b" }}>{cat.label}</span>
+        <span style={{ fontSize: 11, color: DIM }}>{cat.label}</span>
       </div>
 
       <div style={{ marginLeft: mobile ? 0 : "auto", display: mobile ? "none" : "flex", alignItems: "center", gap: 10 }}>
@@ -1723,8 +1778,11 @@ function TopBar({ city, setCity, cities, meta }) {
 }
 
 
-function AppLoadingSkeleton() {
+function AppLoadingSkeleton({ themeVars, appBackground }) {
   const mobile = useIsMobile();
+  const fallbackTheme = getEffectiveTheme(getSavedThemeMode());
+  const resolvedThemeVars = themeVars || getThemeVars(fallbackTheme);
+  const resolvedBackground = appBackground || getAppBackground(fallbackTheme);
   const cardStyle = {
     background: CARD,
     border: `1px solid ${BORD}`,
@@ -1733,12 +1791,14 @@ function AppLoadingSkeleton() {
   };
 
   return (
-    <SkeletonTheme baseColor="#dbe7f3" highlightColor="#edf6ff">
+    <SkeletonTheme baseColor="var(--skeleton-base)" highlightColor="var(--skeleton-highlight)">
       <div style={{
+        ...resolvedThemeVars,
         display: "flex",
         flexDirection: mobile ? "column" : "row",
         height: "100vh",
-        background: "#eef5fb",
+        background: resolvedBackground,
+        color: TXT,
         fontFamily: "Outfit,sans-serif",
         overflow: "hidden",
       }}>
@@ -1869,7 +1929,7 @@ function AppLoadingSkeleton() {
 function WeatherSkeleton() {
   const mobile = useIsMobile();
   return (
-    <SkeletonTheme baseColor="#dbe7f3" highlightColor="#edf6ff">
+    <SkeletonTheme baseColor="var(--skeleton-base)" highlightColor="var(--skeleton-highlight)">
       <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "repeat(2,minmax(0,1fr))", gap: 9 }}>
         {Array.from({ length: 4 }).map((_, i) => (
           <Skeleton key={i} height={64} borderRadius={12} />
@@ -1882,7 +1942,7 @@ function WeatherSkeleton() {
 function MapContentSkeleton() {
   const mobile = useIsMobile();
   return (
-    <SkeletonTheme baseColor="#dbe7f3" highlightColor="#edf6ff">
+    <SkeletonTheme baseColor="var(--skeleton-base)" highlightColor="var(--skeleton-highlight)">
       <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "1fr 260px", gap: mobile ? 12 : 18, alignItems: "start" }}>
         <Skeleton height={mobile ? 380 : 560} borderRadius={18} />
         <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
@@ -2162,7 +2222,7 @@ export default function App() {
     document.head.appendChild(lk);
 
     const st = document.createElement("style");
-    st.textContent = `*{box-sizing:border-box;}body{margin:0;padding:0;background:#0f172a;font-family:Outfit,sans-serif;}::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:2px}@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}`;
+    st.textContent = `*{box-sizing:border-box;}body{margin:0;padding:0;background:#070d1a;font-family:Outfit,sans-serif;}::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#334155;border-radius:2px}.leaflet-container{background:#0b1423}.leaflet-control-zoom a{background:var(--card,#111c2d)!important;color:var(--text,#edf6ff)!important;border-color:var(--line,#263850)!important}.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--card,#111c2d)!important;color:var(--text,#edf6ff)!important}@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}`;
     document.head.appendChild(st);
 
     return () => {
@@ -2173,22 +2233,26 @@ export default function App() {
     };
   }, []);
 
+  const effectiveTheme = getEffectiveTheme(settings.themeMode);
+  const themeVars = getThemeVars(effectiveTheme);
+  const appBackground = getAppBackground(effectiveTheme);
+
   if (cpcbLoading || startupLocationLoading) {
-    return <AppLoadingSkeleton />;
+    return <AppLoadingSkeleton themeVars={themeVars} appBackground={appBackground} />;
   }
 
   if (cpcbError || !activeCity || activeCities.length === 0) {
     return (
-      <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #f8fbff 0%, #eef6ff 100%)", color: TXT, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Outfit,sans-serif", padding: 24 }}>
+      <div style={{ ...themeVars, minHeight: "100vh", background: appBackground, color: TXT, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Outfit,sans-serif", padding: 24 }}>
         <div style={{ background: CARD, border: "1px solid #ef444428", borderRadius: 20, padding: "28px 32px", maxWidth: 720 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
             <AlertTriangle size={22} color="#ef4444" />
             <h2 style={{ margin: 0, fontSize: 22, color: "#fca5a5" }}>CPCB API data could not be loaded</h2>
           </div>
-          <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.7, margin: "0 0 16px" }}>
+          <p style={{ color: MUT, fontSize: 14, lineHeight: 1.7, margin: "0 0 16px" }}>
             The app has no hardcoded fallback cities now, so it will not show default Delhi/sample data. Fix the API issue below and refresh the page.
           </p>
-          <pre style={{ whiteSpace: "pre-wrap", background: BG, border: "1px solid #dbe7f3", borderRadius: 12, padding: 14, color: "#fca5a5", fontSize: 12, lineHeight: 1.6 }}>
+          <pre style={{ whiteSpace: "pre-wrap", background: BG, border: "1px solid var(--line)", borderRadius: 12, padding: 14, color: "#fca5a5", fontSize: 12, lineHeight: 1.6 }}>
             {cpcbError || "No usable city data was returned from CPCB/data.gov.in."}
           </pre>
           <div style={{ color: MUT, fontSize: 12, lineHeight: 1.7, marginTop: 14 }}>
@@ -2205,30 +2269,6 @@ export default function App() {
   const fc = genForecast(activeCity, wx || genWeatherFallback(activeCity.lat));
   const aqi = getAQIValue(activeCity);
   const cat = getCat(aqi);
-  const effectiveTheme = getEffectiveTheme(settings.themeMode);
-  const appBackground = effectiveTheme === "dark"
-    ? "linear-gradient(135deg, #07111f 0%, #0f172a 45%, #111827 100%)"
-    : "linear-gradient(135deg, #f8fbff 0%, #eef6ff 45%, #f4f8fb 100%)";
-
-  const themeVars = effectiveTheme === "dark"
-    ? {
-        "--bg": "#0f172a",
-        "--card": "#111827",
-        "--border": "#243244",
-        "--muted": "#94a3b8",
-        "--dim": "#64748b",
-        "--text": "#e5eefb",
-        "--accent": "#38bdf8",
-      }
-    : {
-        "--bg": "#f4f8fb",
-        "--card": "#ffffff",
-        "--border": "#dbe7f3",
-        "--muted": "#64748b",
-        "--dim": "#94a3b8",
-        "--text": "#0f172a",
-        "--accent": "#0ea5e9",
-      };
 
   const META = {
     dashboard: { title: "Dashboard", sub: `Live CPCB/data.gov.in station data · ${activeCity.name}, ${activeCity.state}` },
@@ -2250,7 +2290,7 @@ export default function App() {
           </div>
           {pg === "dashboard" && <Dashboard city={activeCity} hist={hist} fc={fc} wx={wx || genWeatherFallback(activeCity.lat)} wxLoading={wxLoading} mlLoading={mlLoading} nearestDistance={nearestDistance} settings={settings} />}
           {pg === "analytics" && (settings.showAnalytics ? <Analytics city={activeCity} hist={hist} /> : <div style={{ background: CARD, border: `1px solid ${BORD}`, borderRadius: 20, padding: 24, color: MUT }}>Trend analytics are hidden from Settings. Turn on “Show Trend Analytics” to view charts.</div>)}
-          {pg === "map" && <MapView cities={activeCities} sel={activeCity} onSel={setCity} settings={settings} />}
+          {pg === "map" && <MapView cities={activeCities} sel={activeCity} onSel={setCity} settings={settings} theme={effectiveTheme} />}
           {pg === "health" && <Health city={activeCity} fc={fc} />}
           {pg === "settings" && <SettingsPage meta={cpcbMeta} city={activeCity} cities={activeCities} settings={settings} setSettings={setSettings} applyStartupPreference={applyStartupPreference} />}
         </div>
