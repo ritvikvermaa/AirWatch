@@ -1,6 +1,5 @@
 import csv
 import os
-import time
 from math import atan2, cos, radians, sin, sqrt
 from pathlib import Path
 
@@ -8,8 +7,6 @@ import requests
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from werkzeug.exceptions import HTTPException
-import joblib
-import pandas as pd
 
 app = Flask(__name__)
 DATA_GOV_RESOURCE_URL = "https://api.data.gov.in/resource/3b01bcb8-0b14-4abf-b6f2-c1bfd384ba69"
@@ -18,7 +15,12 @@ DATA_GOV_HEADERS = {
     "User-Agent": "Mozilla/5.0 (compatible; AirWatch/1.0)",
 }
 MAX_CPCB_LIMIT = 1000
+CPCB_CONNECT_TIMEOUT = 2
+CPCB_READ_TIMEOUT = 4
 FALLBACK_CSV_PATH = Path(__file__).with_name("aqi_training.csv")
+_fallback_records_cache = {}
+_pm25_model = None
+_pm10_model = None
 FALLBACK_CITY_COORDS = {
     "Agra": (27.1767, 78.0081),
     "Ahmedabad": (23.0225, 72.5714),
@@ -128,14 +130,25 @@ def handle_unexpected_error(error):
         "details": str(error),
     }), 500
 
-pm25_model = joblib.load("pm25_model.pkl")
-pm10_model = joblib.load("pm10_model.pkl")
-
 FEATURES = ["NO2", "SO2", "CO", "O3", "NH3"]
+
+def load_pm_models():
+    global _pm25_model, _pm10_model
+
+    if _pm25_model is None or _pm10_model is None:
+        import joblib
+
+        _pm25_model = joblib.load("pm25_model.pkl")
+        _pm10_model = joblib.load("pm10_model.pkl")
+
+    return _pm25_model, _pm10_model
 
 @app.route("/predict-pm", methods=["POST"])
 def predict_pm():
+    import pandas as pd
+
     data = request.json or {}
+    pm25_model, pm10_model = load_pm_models()
 
     row = pd.DataFrame([{
         "NO2": data.get("NO2", 0),
@@ -210,28 +223,18 @@ def cpcb_records():
     if city_filter:
         params["filters[city]"] = city_filter
 
-    upstream = None
-    last_error = None
-
-    for attempt in range(2):
-        try:
-            upstream = requests.get(
-                DATA_GOV_RESOURCE_URL,
-                params=params,
-                timeout=(5, 10),
-                headers=DATA_GOV_HEADERS,
-            )
-
-            if upstream.status_code not in (502, 503, 504):
-                break
-        except requests.RequestException as err:
-            last_error = err
-
-        if attempt == 0:
-            time.sleep(1.5)
-
-    if upstream is None:
+    try:
+        upstream = requests.get(
+            DATA_GOV_RESOURCE_URL,
+            params=params,
+            timeout=(CPCB_CONNECT_TIMEOUT, CPCB_READ_TIMEOUT),
+            headers=DATA_GOV_HEADERS,
+        )
+    except requests.RequestException:
         return fallback_cpcb_response(limit, offset, "Could not reach data.gov.in API", city_filter)
+
+    if upstream.status_code in (502, 503, 504):
+        return fallback_cpcb_response(limit, offset, f"data.gov.in API failed: {upstream.status_code}", city_filter)
 
     content_type = upstream.headers.get("content-type", "")
 
@@ -242,9 +245,6 @@ def cpcb_records():
                 details = upstream.json()
             except ValueError:
                 pass
-
-        if upstream.status_code in (502, 503, 504):
-            return fallback_cpcb_response(limit, offset, f"data.gov.in API failed: {upstream.status_code}", city_filter)
 
         status_code = 502 if upstream.status_code >= 500 else upstream.status_code
 
@@ -269,7 +269,7 @@ def fallback_cpcb_response(limit, offset, reason, city_filter=""):
     records = build_fallback_cpcb_records(city_filter)
     page = records[offset:offset + limit]
 
-    return jsonify({
+    response = jsonify({
         "records": page,
         "total": offset + len(page),
         "count": len(page),
@@ -279,8 +279,14 @@ def fallback_cpcb_response(limit, offset, reason, city_filter=""):
         "fallback": True,
         "message": reason,
     })
+    response.headers["Cache-Control"] = "public, max-age=120"
+    return response
 
 def build_fallback_cpcb_records(city_filter=""):
+    cache_key = city_filter.strip().lower()
+    if cache_key in _fallback_records_cache:
+        return _fallback_records_cache[cache_key]
+
     if not FALLBACK_CSV_PATH.exists():
         return []
 
@@ -321,6 +327,7 @@ def build_fallback_cpcb_records(city_filter=""):
                     "last_update": "Fallback training data",
                 })
 
+    _fallback_records_cache[cache_key] = records
     return records
 
 def haversine_km(lat1, lon1, lat2, lon2):
