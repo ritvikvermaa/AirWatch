@@ -1,4 +1,3 @@
-import csv
 import os
 from math import atan2, cos, radians, sin, sqrt
 from pathlib import Path
@@ -22,14 +21,12 @@ DATA_GOV_HEADERS = {
     "User-Agent": "Mozilla/5.0 (compatible; AirWatch/1.0)",
 }
 
-FALLBACK_CSV_PATH = Path(__file__).with_name("aqi_training.csv")
-
 FEATURES = ["NO2", "SO2", "CO", "O3", "NH3"]
 
 _pm25_model = None
 _pm10_model = None
 
-# ✅ CACHE (NEW)
+# ✅ CACHE
 _cache = {
     "data": None,
     "timestamp": 0
@@ -80,6 +77,38 @@ def load_pm_models():
         _pm10_model = joblib.load("pm10_model.pkl")
 
     return _pm25_model, _pm10_model
+
+# -------------------- GROUPING LOGIC (NEW) --------------------
+
+def group_by_station(records):
+    stations = {}
+
+    for r in records:
+        city = r.get("city")
+        station = r.get("station")
+        pollutant = r.get("pollutant_id")
+        value = r.get("pollutant_avg")
+
+        if not city or not station or not pollutant:
+            continue
+
+        key = f"{city}-{station}"
+
+        if key not in stations:
+            stations[key] = {
+                "city": city,
+                "station": station,
+                "pollutants": {}
+            }
+
+        try:
+            value = float(value)
+        except:
+            continue
+
+        stations[key]["pollutants"][pollutant] = value
+
+    return list(stations.values())
 
 # -------------------- ROUTES --------------------
 
@@ -140,7 +169,7 @@ def nearest_city():
         "distanceKm": round(nearest_distance, 1) if nearest_distance else None,
     })
 
-# ✅ FINAL CPCB ROUTE (CACHE + FALLBACK)
+# -------------------- FINAL CPCB ROUTE --------------------
 
 @app.route("/cpcb-records", methods=["GET"])
 def cpcb_records():
@@ -152,14 +181,14 @@ def cpcb_records():
             "message": "API key not set"
         }), 500
 
-    # ✅ RETURN CACHE IF AVAILABLE
+    # ✅ CACHE HIT
     if _cache["data"] and time() - _cache["timestamp"] < 300:
         return jsonify(_cache["data"])
 
     params = {
         "api-key": api_key,
         "format": "json",
-        "limit": "100",
+        "limit": "1000",  # ✅ UPDATED LIMIT
     }
 
     try:
@@ -170,29 +199,38 @@ def cpcb_records():
             timeout=5
         )
 
-        print("STATUS:", res.status_code)
-
         if res.status_code != 200:
             return jsonify({
                 "status": "ok",
                 "fallback": True,
-                "records": [],
-                "message": "CPCB API temporarily unavailable"
+                "stations": [],
+                "message": "CPCB API unavailable"
             })
 
-        data = res.json()
+        raw_data = res.json()
+        records = raw_data.get("records", [])
 
-        # ✅ STORE IN CACHE
-        _cache["data"] = data
+        # ✅ GROUPING APPLIED
+        grouped = group_by_station(records)
+
+        final_data = {
+            "status": "ok",
+            "total_records": len(records),
+            "total_stations": len(grouped),
+            "stations": grouped
+        }
+
+        # ✅ CACHE STORE
+        _cache["data"] = final_data
         _cache["timestamp"] = time()
 
-        return jsonify(data)
+        return jsonify(final_data)
 
     except Exception as e:
         return jsonify({
             "status": "ok",
             "fallback": True,
-            "records": [],
+            "stations": [],
             "message": "CPCB fetch failed",
             "details": str(e)
         })
