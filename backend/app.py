@@ -1,6 +1,5 @@
 import os
 from math import atan2, cos, radians, sin, sqrt
-from pathlib import Path
 from datetime import datetime
 from time import time
 
@@ -42,28 +41,28 @@ def home():
         "endpoints": ["/health", "/predict-pm", "/cpcb-records", "/nearest-city"]
     }
 
-@app.route("/health", methods=["GET"])
+@app.route("/health")
 def health():
     return jsonify({
         "status": "UP",
         "timestamp": datetime.utcnow().isoformat()
-    }), 200
+    })
 
 # -------------------- ERROR HANDLER --------------------
 
 @app.errorhandler(Exception)
-def handle_unexpected_error(error):
+def handle_error(error):
     if isinstance(error, HTTPException):
         return jsonify({
             "status": "error",
-            "message": error.description,
+            "message": error.description
         }), error.code
 
-    app.logger.exception("Unhandled backend error")
+    app.logger.exception("Unhandled error")
     return jsonify({
         "status": "error",
         "message": "Internal backend error",
-        "details": str(error),
+        "details": str(error)
     }), 500
 
 # -------------------- MODEL LOADING --------------------
@@ -78,7 +77,7 @@ def load_pm_models():
 
     return _pm25_model, _pm10_model
 
-# -------------------- GROUPING LOGIC (NEW) --------------------
+# -------------------- GROUPING FIX --------------------
 
 def group_by_station(records):
     stations = {}
@@ -89,7 +88,7 @@ def group_by_station(records):
         pollutant = r.get("pollutant_id")
         value = r.get("pollutant_avg")
 
-        if not city or not station or not pollutant:
+        if not city or not station:
             continue
 
         key = f"{city}-{station}"
@@ -98,17 +97,27 @@ def group_by_station(records):
             stations[key] = {
                 "city": city,
                 "station": station,
+                "latitude": safe_float(r.get("latitude")),
+                "longitude": safe_float(r.get("longitude")),
                 "pollutants": {}
             }
 
-        try:
-            value = float(value)
-        except:
+        value = safe_float(value)
+        if value is None:
             continue
 
-        stations[key]["pollutants"][pollutant] = value
+        if pollutant:
+            stations[key]["pollutants"][pollutant] = value
 
     return list(stations.values())
+
+def safe_float(x):
+    try:
+        if x in (None, "", "NA"):
+            return None
+        return float(x)
+    except:
+        return None
 
 # -------------------- ROUTES --------------------
 
@@ -135,60 +144,21 @@ def predict_pm():
         "PM10": round(float(pm10))
     })
 
-@app.route("/nearest-city", methods=["GET"])
-def nearest_city():
-    try:
-        lat = float(request.args.get("lat", ""))
-        lon = float(request.args.get("lon", ""))
-    except ValueError:
-        return jsonify({
-            "status": "error",
-            "message": "lat and lon must be numbers"
-        }), 400
-
-    FALLBACK_CITY_COORDS = {
-        "Delhi": (28.6139, 77.2090),
-        "Mumbai": (19.0760, 72.8777),
-        "Bengaluru": (12.9716, 77.5946),
-        "Chandigarh": (30.7333, 76.7794),
-    }
-
-    nearest_name = None
-    nearest_distance = None
-
-    for city, (city_lat, city_lon) in FALLBACK_CITY_COORDS.items():
-        distance = haversine_km(lat, lon, city_lat, city_lon)
-
-        if nearest_distance is None or distance < nearest_distance:
-            nearest_name = city
-            nearest_distance = distance
-
-    return jsonify({
-        "status": "ok",
-        "city": nearest_name,
-        "distanceKm": round(nearest_distance, 1) if nearest_distance else None,
-    })
-
-# -------------------- FINAL CPCB ROUTE --------------------
-
-@app.route("/cpcb-records", methods=["GET"])
+@app.route("/cpcb-records")
 def cpcb_records():
     api_key = os.environ.get("DATA_GOV_API_KEY")
 
     if not api_key:
-        return jsonify({
-            "status": "error",
-            "message": "API key not set"
-        }), 500
+        return jsonify({"status": "error", "message": "API key missing"}), 500
 
-    # ✅ CACHE HIT
+    # ✅ CACHE
     if _cache["data"] and time() - _cache["timestamp"] < 300:
         return jsonify(_cache["data"])
 
     params = {
         "api-key": api_key,
         "format": "json",
-        "limit": "1000",  # ✅ UPDATED LIMIT
+        "limit": "1000",
     }
 
     try:
@@ -200,49 +170,79 @@ def cpcb_records():
         )
 
         if res.status_code != 200:
-            return jsonify({
-                "status": "ok",
-                "fallback": True,
-                "stations": [],
-                "message": "CPCB API unavailable"
-            })
+            return fallback_response("API unavailable")
 
-        raw_data = res.json()
-        records = raw_data.get("records", [])
+        raw = res.json()
+        records = raw.get("records", [])
 
-        # ✅ GROUPING APPLIED
+        print("RAW RECORDS:", len(records))
+
         grouped = group_by_station(records)
 
-        final_data = {
+        print("GROUPED STATIONS:", len(grouped))
+
+        if not grouped:
+            return fallback_response("0 usable stations")
+
+        final = {
             "status": "ok",
             "total_records": len(records),
             "total_stations": len(grouped),
             "stations": grouped
         }
 
-        # ✅ CACHE STORE
-        _cache["data"] = final_data
+        _cache["data"] = final
         _cache["timestamp"] = time()
 
-        return jsonify(final_data)
+        return jsonify(final)
 
     except Exception as e:
-        return jsonify({
-            "status": "ok",
-            "fallback": True,
-            "stations": [],
-            "message": "CPCB fetch failed",
-            "details": str(e)
-        })
+        return fallback_response(str(e))
+
+# -------------------- FALLBACK --------------------
+
+def fallback_response(msg):
+    return jsonify({
+        "status": "ok",
+        "fallback": True,
+        "stations": [],
+        "message": msg
+    })
+
+@app.route("/nearest-city")
+def nearest_city():
+    try:
+        lat = float(request.args.get("lat"))
+        lon = float(request.args.get("lon"))
+    except:
+        return jsonify({"status": "error", "message": "invalid coords"}), 400
+
+    cities = {
+        "Delhi": (28.6139, 77.2090),
+        "Mumbai": (19.0760, 72.8777),
+        "Bengaluru": (12.9716, 77.5946),
+    }
+
+    best = None
+    best_dist = float("inf")
+
+    for name, (clat, clon) in cities.items():
+        d = haversine_km(lat, lon, clat, clon)
+        if d < best_dist:
+            best = name
+            best_dist = d
+
+    return jsonify({"city": best, "distance": round(best_dist, 1)})
 
 # -------------------- UTILS --------------------
 
 def haversine_km(lat1, lon1, lat2, lon2):
-    radius = 6371
-    d_lat = radians(lat2 - lat1)
-    d_lon = radians(lon2 - lon1)
-    a = sin(d_lat / 2) ** 2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(d_lon / 2) ** 2
-    return radius * (2 * atan2(sqrt(a), sqrt(1 - a)))
+    r = 6371
+    dlat = radians(lat2 - lat1)
+    dlon = radians(lon2 - lon1)
+
+    a = sin(dlat/2)**2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon/2)**2
+    return r * (2 * atan2(sqrt(a), sqrt(1 - a)))
 
 # -------------------- RUN --------------------
 
