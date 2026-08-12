@@ -12,17 +12,17 @@ from werkzeug.exceptions import HTTPException
 app = Flask(__name__)
 CORS(app)
 
+# -------------------- CONFIG --------------------
+
 DATA_GOV_RESOURCE_URL = "https://api.data.gov.in/resource/3b01bcb8-0b14-4abf-b6f2-c1bfd384ba69"
+
 DATA_GOV_HEADERS = {
     "Accept": "application/json",
     "User-Agent": "Mozilla/5.0 (compatible; AirWatch/1.0)",
 }
-MAX_CPCB_LIMIT = 1000
-CPCB_CONNECT_TIMEOUT = 2
-CPCB_READ_TIMEOUT = 4
+
 FALLBACK_CSV_PATH = Path(__file__).with_name("aqi_training.csv")
 
-_fallback_records_cache = {}
 _pm25_model = None
 _pm10_model = None
 
@@ -34,7 +34,6 @@ FALLBACK_CITY_COORDS = {
     "Bengaluru": (12.9716, 77.5946),
     "Chandigarh": (30.7333, 76.7794),
     "Ludhiana": (30.9010, 75.8573),
-    # (keep rest of your cities same)
 }
 
 # -------------------- BASIC ROUTES --------------------
@@ -47,7 +46,6 @@ def home():
         "endpoints": ["/health", "/predict-pm", "/cpcb-records", "/nearest-city"]
     }
 
-# ✅ HEALTH ROUTE (NEW)
 @app.route("/health", methods=["GET"])
 def health():
     return jsonify({
@@ -56,7 +54,7 @@ def health():
         "timestamp": datetime.utcnow().isoformat()
     }), 200
 
-# -------------------- ERROR HANDLING --------------------
+# -------------------- ERROR HANDLER --------------------
 
 @app.errorhandler(Exception)
 def handle_unexpected_error(error):
@@ -137,11 +135,7 @@ def nearest_city():
         "distanceKm": round(nearest_distance, 1) if nearest_distance else None,
     })
 
-@app.route("/debug-env")
-def debug_env():
-    return {
-        "has_key": bool(os.environ.get("DATA_GOV_API_KEY")),
-    }
+# ✅ FIXED CPCB ROUTE (IMPORTANT)
 
 @app.route("/cpcb-records", methods=["GET"])
 def cpcb_records():
@@ -150,7 +144,7 @@ def cpcb_records():
     if not api_key:
         return jsonify({
             "status": "error",
-            "message": "DATA_GOV_API_KEY is not configured"
+            "message": "DATA_GOV_API_KEY not set"
         }), 500
 
     params = {
@@ -160,12 +154,30 @@ def cpcb_records():
     }
 
     try:
-        res = requests.get(DATA_GOV_RESOURCE_URL, params=params, timeout=5)
+        res = requests.get(
+            DATA_GOV_RESOURCE_URL,
+            params=params,
+            headers=DATA_GOV_HEADERS,  # 🔥 THIS FIXES YOUR ISSUE
+            timeout=5
+        )
+
+        print("STATUS:", res.status_code)
+        print("BODY:", res.text[:200])
+
+        if res.status_code != 200:
+            return jsonify({
+                "status": "error",
+                "message": f"API failed: {res.status_code}",
+                "details": res.text[:200]
+            }), 502
+
         return jsonify(res.json())
-    except Exception:
+
+    except Exception as e:
         return jsonify({
             "status": "error",
-            "message": "Failed to fetch CPCB data"
+            "message": "Failed to fetch CPCB data",
+            "details": str(e)
         }), 500
 
 # -------------------- UTILS --------------------
