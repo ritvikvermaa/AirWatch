@@ -137,6 +137,12 @@ def nearest_city():
         "distanceKm": round(nearest_distance, 1) if nearest_distance else None,
     })
 
+@app.route("/debug-env")
+def debug_env():
+    return {
+        "has_key": bool(os.environ.get("DATA_GOV_API_KEY")),
+    }
+
 @app.route("/cpcb-records", methods=["GET"])
 def cpcb_records():
     api_key = os.environ.get("DATA_GOV_API_KEY")
