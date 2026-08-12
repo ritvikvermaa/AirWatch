@@ -3,6 +3,7 @@ import os
 from math import atan2, cos, radians, sin, sqrt
 from pathlib import Path
 from datetime import datetime
+from time import time
 
 import requests
 from flask import Flask, request, jsonify
@@ -23,17 +24,15 @@ DATA_GOV_HEADERS = {
 
 FALLBACK_CSV_PATH = Path(__file__).with_name("aqi_training.csv")
 
+FEATURES = ["NO2", "SO2", "CO", "O3", "NH3"]
+
 _pm25_model = None
 _pm10_model = None
 
-FEATURES = ["NO2", "SO2", "CO", "O3", "NH3"]
-
-FALLBACK_CITY_COORDS = {
-    "Delhi": (28.6139, 77.2090),
-    "Mumbai": (19.0760, 72.8777),
-    "Bengaluru": (12.9716, 77.5946),
-    "Chandigarh": (30.7333, 76.7794),
-    "Ludhiana": (30.9010, 75.8573),
+# ✅ CACHE (NEW)
+_cache = {
+    "data": None,
+    "timestamp": 0
 }
 
 # -------------------- BASIC ROUTES --------------------
@@ -50,7 +49,6 @@ def home():
 def health():
     return jsonify({
         "status": "UP",
-        "service": "AirWatch Backend",
         "timestamp": datetime.utcnow().isoformat()
     }), 200
 
@@ -119,6 +117,13 @@ def nearest_city():
             "message": "lat and lon must be numbers"
         }), 400
 
+    FALLBACK_CITY_COORDS = {
+        "Delhi": (28.6139, 77.2090),
+        "Mumbai": (19.0760, 72.8777),
+        "Bengaluru": (12.9716, 77.5946),
+        "Chandigarh": (30.7333, 76.7794),
+    }
+
     nearest_name = None
     nearest_distance = None
 
@@ -135,7 +140,7 @@ def nearest_city():
         "distanceKm": round(nearest_distance, 1) if nearest_distance else None,
     })
 
-# ✅ FIXED CPCB ROUTE (IMPORTANT)
+# ✅ FINAL CPCB ROUTE (CACHE + FALLBACK)
 
 @app.route("/cpcb-records", methods=["GET"])
 def cpcb_records():
@@ -144,8 +149,12 @@ def cpcb_records():
     if not api_key:
         return jsonify({
             "status": "error",
-            "message": "DATA_GOV_API_KEY not set"
+            "message": "API key not set"
         }), 500
+
+    # ✅ RETURN CACHE IF AVAILABLE
+    if _cache["data"] and time() - _cache["timestamp"] < 300:
+        return jsonify(_cache["data"])
 
     params = {
         "api-key": api_key,
@@ -157,28 +166,36 @@ def cpcb_records():
         res = requests.get(
             DATA_GOV_RESOURCE_URL,
             params=params,
-            headers=DATA_GOV_HEADERS,  # 🔥 THIS FIXES YOUR ISSUE
+            headers=DATA_GOV_HEADERS,
             timeout=5
         )
 
         print("STATUS:", res.status_code)
-        print("BODY:", res.text[:200])
 
         if res.status_code != 200:
             return jsonify({
-                "status": "error",
-                "message": f"API failed: {res.status_code}",
-                "details": res.text[:200]
-            }), 502
+                "status": "ok",
+                "fallback": True,
+                "records": [],
+                "message": "CPCB API temporarily unavailable"
+            })
 
-        return jsonify(res.json())
+        data = res.json()
+
+        # ✅ STORE IN CACHE
+        _cache["data"] = data
+        _cache["timestamp"] = time()
+
+        return jsonify(data)
 
     except Exception as e:
         return jsonify({
-            "status": "error",
-            "message": "Failed to fetch CPCB data",
+            "status": "ok",
+            "fallback": True,
+            "records": [],
+            "message": "CPCB fetch failed",
             "details": str(e)
-        }), 500
+        })
 
 # -------------------- UTILS --------------------
 
