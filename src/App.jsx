@@ -364,8 +364,9 @@ async function fetchWeather(lat, lon) {
 // CPCB/data.gov.in live API integration.
 // The browser calls our backend/proxy so the API key stays server-side
 // and data.gov.in CORS/upstream failures can be reported clearly.
-const ML_API_URL = import.meta.env.VITE_ML_API_URL;
-const CPCB_API_URL = import.meta.env.VITE_CPCB_API_URL || (ML_API_URL ? `${ML_API_URL}/cpcb-records` : "/api/cpcb-records");
+// Default to the Vercel function (pinned to Mumbai in vercel.json): data.gov.in
+// refuses connections from most non-Indian hosts, including Render.
+const CPCB_API_URL = import.meta.env.VITE_CPCB_API_URL || "/api/cpcb-records";
 
 async function fetchCPCBRecords({ startOffset = 0, maxPages = 1, cityFilter = "" } = {}) {
   const all = [];

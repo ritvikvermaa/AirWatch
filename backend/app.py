@@ -1,3 +1,4 @@
+import re
 import os
 from math import atan2, cos, radians, sin, sqrt
 from datetime import datetime, timezone
@@ -153,7 +154,7 @@ def cpcb_records():
         return jsonify({
             "status": "error",
             "message": "Could not reach data.gov.in API",
-            "details": str(e),
+            "details": re.sub(r"api-key=[^&\s'\"]+", "api-key=REDACTED", str(e)),
         }), 502
 
 @app.route("/nearest-city")
