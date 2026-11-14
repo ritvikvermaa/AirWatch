@@ -362,11 +362,34 @@ async function fetchWeather(lat, lon) {
 }
 
 // CPCB/data.gov.in live API integration.
-// The browser calls our backend/proxy so the API key stays server-side
-// and data.gov.in CORS/upstream failures can be reported clearly.
-// Default to the Vercel function (pinned to Mumbai in vercel.json): data.gov.in
-// refuses connections from most non-Indian hosts, including Render.
+// data.gov.in refuses connections from cloud hosts (Render, Vercel), but it
+// allows CORS, so the browser fetches it directly when a public key is set.
+// The server proxy is only a fallback.
+const DATA_GOV_DIRECT_URL = "https://api.data.gov.in/resource/3b01bcb8-0b14-4abf-b6f2-c1bfd384ba69";
+const DATA_GOV_PUBLIC_KEY = import.meta.env.VITE_DATA_GOV_API_KEY;
 const CPCB_API_URL = import.meta.env.VITE_CPCB_API_URL || "/api/cpcb-records";
+
+async function fetchCPCBPage(params) {
+  const errors = [];
+
+  if (DATA_GOV_PUBLIC_KEY) {
+    try {
+      const direct = new URLSearchParams(params);
+      direct.set("api-key", DATA_GOV_PUBLIC_KEY);
+      const res = await fetch(`${DATA_GOV_DIRECT_URL}?${direct.toString()}`);
+      if (res.ok) return res;
+      errors.push(`direct: ${res.status}`);
+    } catch (e) {
+      errors.push(`direct: ${e?.message || e}`);
+    }
+  }
+
+  const res = await fetch(`${CPCB_API_URL}?${params.toString()}`);
+  if (res.ok) return res;
+  const text = await res.text().catch(() => "");
+  errors.push(`proxy: ${res.status} ${text}`);
+  throw new Error(`CPCB API failed — ${errors.join(" | ")}`);
+}
 
 async function fetchCPCBRecords({ startOffset = 0, maxPages = 1, cityFilter = "" } = {}) {
   const all = [];
@@ -384,16 +407,10 @@ async function fetchCPCBRecords({ startOffset = 0, maxPages = 1, cityFilter = ""
     });
 
     if (cityFilter) {
-      params.set("city", cityFilter);
+      params.set("filters[city]", cityFilter);
     }
 
-    const url = `${CPCB_API_URL}?${params.toString()}`;
-    const res = await fetch(url);
-
-    if (!res.ok) {
-      const text = await res.text().catch(() => "");
-      throw new Error(`CPCB API proxy failed: ${res.status} ${text}`);
-    }
+    const res = await fetchCPCBPage(params);
 
     const json = await res.json();
     console.log(
@@ -2199,7 +2216,7 @@ export default function App() {
           </pre>
           <div style={{ color: MUT, fontSize: 12, lineHeight: 1.7, marginTop: 14 }}>
             Check that the server environment contains:<br />
-            <code style={{ color: ACC }}>DATA_GOV_API_KEY=your_actual_api_key</code><br />
+            <code style={{ color: ACC }}>VITE_DATA_GOV_API_KEY=your_actual_api_key</code><br />
             Then redeploy Vercel or restart the dev server.
           </div>
         </div>
