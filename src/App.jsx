@@ -12,7 +12,7 @@ import {
   BarChart2, Map as MapIcon, AlertTriangle, Heart,
   TrendingUp, TrendingDown, Minus, Activity, Shield,
   X, Plus, Sun, Cloud, CloudRain, ChevronDown, Settings,
-  Upload, RotateCcw, CheckCircle, FileText, AlertCircle, Search,
+  Upload, RotateCcw, CheckCircle, FileText, AlertCircle, Search, LocateFixed,
 } from "lucide-react";
 
 // Indian AQI sub-index utilities based on CPCB breakpoint ranges.
@@ -413,11 +413,6 @@ async function fetchCPCBRecords({ startOffset = 0, maxPages = 1, cityFilter = ""
     const res = await fetchCPCBPage(params);
 
     const json = await res.json();
-    console.log(
-      "RAW CPCB FULL RECORD:",
-      JSON.stringify(json.records?.[0], null, 2)
-    );
-
     if (json?.status === "error") {
       throw new Error(json?.message || "data.gov.in API returned an error");
     }
@@ -1586,7 +1581,7 @@ function Sidebar({ pg, set }) {
   );
 }
 
-function TopBar({ city, setCity, cities, meta }) {
+function TopBar({ city, setCity, cities, meta, onLocate, locating, stale }) {
   const mobile = useIsMobile();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -1726,6 +1721,23 @@ function TopBar({ city, setCity, cities, meta }) {
         )}
       </div>
 
+      {/* Near me */}
+      <button
+        type="button"
+        onClick={onLocate}
+        disabled={locating}
+        title="Find the station nearest to you"
+        aria-label="Find the station nearest to you"
+        style={{
+          display: "flex", alignItems: "center", gap: 6, padding: mobile ? "7px 9px" : "6px 12px",
+          borderRadius: 10, background: CARD, border: "1px solid var(--line)", color: TXT,
+          cursor: locating ? "wait" : "pointer", flexShrink: 0, fontFamily: "Outfit,sans-serif",
+          fontSize: 12, fontWeight: 700, opacity: locating ? 0.7 : 1,
+        }}>
+        <LocateFixed size={13} color={ACC} style={locating ? { animation: "pulse 1s infinite" } : undefined} />
+        {!mobile && <span>{locating ? "Locating…" : "Near me"}</span>}
+      </button>
+
       {/* AQI badge */}
       <div style={{
         padding: "4px 12px", borderRadius: 8, background: `${cat.color}14`,
@@ -1743,10 +1755,10 @@ function TopBar({ city, setCity, cities, meta }) {
         </span>
         <div style={{
           display: "flex", alignItems: "center", gap: 5, padding: "4px 10px", borderRadius: 8,
-          background: "#22c55e0d", border: "1px solid #22c55e1a"
+          background: stale ? "#f59e0b0d" : "#22c55e0d", border: `1px solid ${stale ? "#f59e0b33" : "#22c55e1a"}`
         }}>
-          <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#22c55e", boxShadow: "0 0 6px #22c55e", animation: "pulse 2s infinite" }} />
-          <span style={{ fontSize: 11, color: "#22c55e", fontWeight: 700 }}>LIVE API</span>
+          <div style={{ width: 6, height: 6, borderRadius: "50%", background: stale ? "#f59e0b" : "#22c55e", boxShadow: stale ? "none" : "0 0 6px #22c55e", animation: stale ? "none" : "pulse 2s infinite" }} />
+          <span style={{ fontSize: 11, color: stale ? "#d97706" : "#22c55e", fontWeight: 700 }}>{stale ? "SAVED DATA" : "LIVE API"}</span>
         </div>
       </div>
     </div>
@@ -1936,6 +1948,35 @@ function MapContentSkeleton() {
 // ══════════════════════════════════════════════════════════
 //  ROOT APP
 // ══════════════════════════════════════════════════════════
+// Last good CPCB result, shown when the live API is unreachable.
+const CPCB_CACHE_KEY = "airwatch_cpcb_cache_v1";
+
+function saveCPCBCache(cities, meta) {
+  try {
+    localStorage.setItem(CPCB_CACHE_KEY, JSON.stringify({ cities, meta, savedAt: Date.now() }));
+  } catch {
+    // Storage full or blocked; caching is optional.
+  }
+}
+
+function loadCPCBCache() {
+  try {
+    const raw = localStorage.getItem(CPCB_CACHE_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    return parsed?.cities?.length ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function formatAge(ms) {
+  const mins = Math.max(1, Math.round(ms / 60000));
+  if (mins < 60) return `${mins} min ago`;
+  const hrs = Math.round(mins / 60);
+  if (hrs < 48) return `${hrs} h ago`;
+  return `${Math.round(hrs / 24)} days ago`;
+}
+
 export default function App() {
   const mobile = useIsMobile();
   const [pg, setPg] = useState("dashboard");
@@ -1948,7 +1989,10 @@ export default function App() {
   const [wx, setWx] = useState(null);
   const [wxLoading, setWxLoading] = useState(false);
   const mlLoading = false;
-  const [userLocation, setUserLocation] = useState(null);
+  const [, setUserLocation] = useState(null);
+  const [staleSince, setStaleSince] = useState(null);
+  const [locating, setLocating] = useState(false);
+  const [notice, setNotice] = useState("");
   const [nearestDistance, setNearestDistance] = useState(null);
   const locationRequestedRef = useRef(false);
   const locationStatusRef = useRef("idle");
@@ -2035,8 +2079,7 @@ export default function App() {
 
         setStartupLocationLoading(false);
       },
-      error => {
-        console.log("Location access not granted:", error.message);
+      () => {
         locationStatusRef.current = "unavailable";
         userLocationRef.current = null;
         setUserLocation(null);
@@ -2069,13 +2112,11 @@ export default function App() {
           throw new Error("CPCB API returned 0 usable stations. Check API response fields: city, state, latitude, longitude, pollutant_id, avg_value.");
         }
 
-        console.log("CPCB loaded stations count:", cities.length);
-        console.log("First CPCB station:", cities[0]);
-        console.log("Delhi from CPCB:", cities.find(c => c.id === "delhi"));
-
         setCpcbCities(cities);
         cpcbCitiesRef.current = cities;
         setCpcbMeta(meta);
+        setStaleSince(null);
+        saveCPCBCache(cities, meta);
         if (settings.startupPreference === "nearest" && userLocationRef.current) {
           setNearestOrFallback(cities, userLocationRef.current);
           setStartupLocationLoading(false);
@@ -2104,18 +2145,36 @@ export default function App() {
               setCpcbCities(prev => {
                 const merged = mergeStations(prev, moreCities);
                 cpcbCitiesRef.current = merged;
-                setCpcbMeta({ ...moreMeta, totalStations: merged.length, cityCount: merged.length });
+                const mergedMeta = { ...moreMeta, totalStations: merged.length, cityCount: merged.length };
+                setCpcbMeta(mergedMeta);
+                saveCPCBCache(merged, mergedMeta);
                 return merged;
               });
             })
-            .catch(err => {
-              console.log("Background CPCB station load skipped:", err.message);
+            .catch(() => {
+              // Background load is best-effort; the first page is already shown.
             });
         }
       })
       .catch(err => {
         if (cancelled) return;
         console.error("CPCB API failed:", err);
+
+        const cached = loadCPCBCache();
+        if (cached) {
+          setCpcbCities(cached.cities);
+          cpcbCitiesRef.current = cached.cities;
+          setCpcbMeta(cached.meta);
+          setStaleSince(formatAge(Date.now() - cached.savedAt));
+          if (settings.startupPreference === "nearest" && userLocationRef.current) {
+            setNearestOrFallback(cached.cities, userLocationRef.current);
+          } else {
+            setCity(cached.cities.find(c => c.id === "delhi") || cached.cities[0]);
+          }
+          setStartupLocationLoading(false);
+          return;
+        }
+
         setCpcbError(err.message || "Could not load CPCB/data.gov.in API data");
         setCpcbCities([]);
         cpcbCitiesRef.current = [];
@@ -2173,6 +2232,47 @@ export default function App() {
       { enableHighAccuracy: false, timeout: 3500, maximumAge: 300000 }
     );
   }
+
+  function locateMe() {
+    if (!navigator.geolocation) {
+      setNotice("Your browser doesn't support location.");
+      return;
+    }
+    setLocating(true);
+    setNotice("");
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        const coords = { lat: position.coords.latitude, lon: position.coords.longitude };
+        userLocationRef.current = coords;
+        setUserLocation(coords);
+        const nearest = findNearestStation(cpcbCitiesRef.current, coords);
+        if (nearest.station) {
+          setCity(nearest.station);
+          setNearestDistance(nearest.distance);
+          setPg("dashboard");
+          if (nearest.distance != null) {
+            setNotice(`Nearest station: ${nearest.station.name}, ${nearest.distance} km away.`);
+          }
+        } else {
+          setNotice("No station found near your location.");
+        }
+        setLocating(false);
+      },
+      error => {
+        setNotice(error.code === error.PERMISSION_DENIED
+          ? "Location permission is blocked. Allow it in your browser settings to find the nearest station."
+          : "Couldn't get your location. Try again.");
+        setLocating(false);
+      },
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
+    );
+  }
+
+  useEffect(() => {
+    if (!notice) return;
+    const t = setTimeout(() => setNotice(""), 6000);
+    return () => clearTimeout(t);
+  }, [notice]);
 
   useEffect(() => {
     const lk = document.createElement("link");
@@ -2241,7 +2341,24 @@ export default function App() {
     <div style={{ ...themeVars, display: "flex", flexDirection: mobile ? "column" : "row", height: "100vh", background: appBackground, color: TXT, fontFamily: "Outfit,sans-serif", overflow: "hidden" }}>
       <Sidebar pg={pg} set={setPg} />
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-        <TopBar city={activeCity} setCity={setCity} cities={activeCities} meta={cpcbMeta} />
+        <TopBar city={activeCity} setCity={setCity} cities={activeCities} meta={cpcbMeta} onLocate={locateMe} locating={locating} stale={Boolean(staleSince)} />
+        {(staleSince || notice) && (
+          <div style={{ padding: mobile ? "8px 12px 0" : "10px 24px 0", display: "flex", flexDirection: "column", gap: 6 }}>
+            {staleSince && (
+              <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", borderRadius: 10, background: "#f59e0b14", border: "1px solid #f59e0b33", color: "#d97706", fontSize: 12, fontWeight: 600 }}>
+                <AlertCircle size={14} />
+                <span>Live CPCB data is unavailable. Showing saved data from {staleSince}.</span>
+              </div>
+            )}
+            {notice && (
+              <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", borderRadius: 10, background: CARD, border: "1px solid var(--line)", color: MUT, fontSize: 12 }}>
+                <LocateFixed size={14} color={ACC} />
+                <span style={{ flex: 1 }}>{notice}</span>
+                <X size={12} style={{ cursor: "pointer" }} onClick={() => setNotice("")} />
+              </div>
+            )}
+          </div>
+        )}
         <div style={{ flex: 1, overflowY: "auto", padding: mobile ? "16px 12px 84px" : "20px 24px" }}>
           <div style={{ marginBottom: 18 }}>
             <h1 style={{ margin: 0, fontSize: 22, fontWeight: 900, color: TXT, fontFamily: "Outfit,sans-serif" }}>{META[pg].title}</h1>
